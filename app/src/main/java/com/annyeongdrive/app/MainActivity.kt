@@ -81,6 +81,7 @@ fun LocationStatus(modifier: Modifier = Modifier) {
     val latest by LocationState.latest.collectAsState()
     val count by LocationState.count.collectAsState()
     val error by LocationState.error.collectAsState()
+    val events by LocationState.events.collectAsState()
 
     Column(modifier = modifier.padding(24.dp)) {
         Text("Annyeong Drive · 위치 확인", style = MaterialTheme.typography.titleLarge)
@@ -93,5 +94,9 @@ fun LocationStatus(modifier: Modifier = Modifier) {
             Text(String.format(Locale.US, "방향 %.1f°", loc.heading))
         }
         error?.let { Text("오류: $it", color = MaterialTheme.colorScheme.error) }
+
+        Text("구역 사건", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
+        if (events.isEmpty()) Text("아직 없음")
+        events.forEach { Text("· $it") }
     }
 }

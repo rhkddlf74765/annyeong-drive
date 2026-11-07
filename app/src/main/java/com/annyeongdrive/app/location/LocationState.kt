@@ -15,6 +15,14 @@ object LocationState {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _events = MutableStateFlow<List<String>>(emptyList())
+    /** 최근 구역 사건(최신이 위). 개발 확인용. */
+    val events: StateFlow<List<String>> = _events
+
+    fun addEvent(text: String) {
+        _events.value = (listOf(text) + _events.value).take(MAX_EVENTS)
+    }
+
     fun update(data: LocationData) {
         _latest.value = data
         _count.value += 1
@@ -24,4 +32,6 @@ object LocationState {
     fun fail(message: String) {
         _error.value = message
     }
+
+    private const val MAX_EVENTS = 8
 }

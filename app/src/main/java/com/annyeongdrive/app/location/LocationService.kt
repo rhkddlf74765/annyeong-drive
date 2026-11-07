@@ -13,6 +13,9 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.annyeongdrive.app.R
+import com.annyeongdrive.app.zones.ZoneDetector
+import com.annyeongdrive.app.zones.ZoneEvent
+import com.annyeongdrive.app.zones.ZoneLoader
 import java.util.Locale
 
 /**
@@ -22,6 +25,7 @@ import java.util.Locale
 class LocationService : Service() {
 
     private var fusedLocation: FusedLocation? = null
+    private var zoneDetector: ZoneDetector? = null
 
     private val listener = object : FusedLocationListener {
         override fun onChanged(location: LocationData?) {
@@ -34,6 +38,9 @@ class LocationService : Service() {
                     data.latitude, data.longitude, data.heading, data.confidence
                 )
             )
+            zoneDetector
+                ?.update(data.latitude, data.longitude, data.timestampMillis)
+                ?.forEach { onZoneEvent(it) }
         }
 
         override fun onError(e: Exception) {
@@ -59,11 +66,38 @@ class LocationService : Service() {
             return
         }
 
+        zoneDetector = try {
+            val zones = ZoneLoader.load(applicationContext)
+            Log.d(
+                ZONE_TAG,
+                "zones loaded: school=${zones.schoolZones.size} speed=${zones.speedCameras.size} parking=${zones.parkingCameras.size}"
+            )
+            ZoneDetector(zones)
+        } catch (e: Exception) {
+            Log.e(ZONE_TAG, "zones.json load failed", e)
+            null
+        }
+
         val fl = FusedLocation(applicationContext)
         fusedLocation = fl
         fl.initialize()
         Log.d(TAG, "FusedLocation initialized, supported=${fl.isSupported()}")
         fl.registerFusedLocationCallback(listener)
+    }
+
+    /** 지금은 로그와 화면 기록만 남긴다. 다음 단계에서 안내 관리자로 넘긴다. */
+    private fun onZoneEvent(event: ZoneEvent) {
+        val text = when (event) {
+            is ZoneEvent.SchoolZoneEntered ->
+                "어린이보호구역 진입: ${event.zone.name} (${event.distanceM.toInt()}m), 제한 ${event.zone.speedLimitKmh}"
+            ZoneEvent.SchoolZoneExited -> "어린이보호구역 이탈"
+            is ZoneEvent.SpeedCameraAhead ->
+                "과속 카메라 ${event.camera.speedLimitKmh}km/h 앞 ${event.distanceM.toInt()}m: ${event.camera.place}"
+            is ZoneEvent.StoppedNearParkingCamera ->
+                "정차, 주정차 단속 카메라 ${event.distanceM.toInt()}m: ${event.camera.place}"
+        }
+        Log.i(ZONE_TAG, text)
+        LocationState.addEvent(text)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -97,6 +131,7 @@ class LocationService : Service() {
 
     companion object {
         const val TAG = "AnnyeongLoc"
+        const val ZONE_TAG = "AnnyeongZone"
         private const val CHANNEL_ID = "drive_guide"
         private const val NOTIFICATION_ID = 1001
 
