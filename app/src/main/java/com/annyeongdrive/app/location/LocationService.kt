@@ -13,7 +13,15 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.annyeongdrive.app.R
-import com.annyeongdrive.app.zones.ZoneDetector
+import com.annyeongdrive.app.guide.EncounterBasedPolicy
+import com.annyeongdrive.app.guide.EnglishPhrasebook
+import com.annyeongdrive.app.guide.Utterance
+import com.annyeongdrive.app.speech.SpeechHub
+import com.annyeongdrive.app.speech.Speaker
+import com.annyeongdrive.app.session.DriveSession
+import com.annyeongdrive.app.session.JumpTripBoundary
+import com.annyeongdrive.app.session.TripBoundary
+import com.annyeongdrive.app.zones.ZoneData
 import com.annyeongdrive.app.zones.ZoneEvent
 import com.annyeongdrive.app.zones.ZoneLoader
 import java.util.Locale
@@ -25,7 +33,15 @@ import java.util.Locale
 class LocationService : Service() {
 
     private var fusedLocation: FusedLocation? = null
-    private var zoneDetector: ZoneDetector? = null
+    private var zones: ZoneData? = null
+    private var speaker: Speaker? = null
+    private val tripBoundary: TripBoundary = JumpTripBoundary()
+    private var session: DriveSession? = null
+    private var sessionCount = 0
+
+    private val ttsReadyListener = SpeechHub.ReadyListener { ok, err ->
+        if (!ok) LocationState.fail("Pleos TTS 사용 불가: $err")
+    }
 
     private val listener = object : FusedLocationListener {
         override fun onChanged(location: LocationData?) {
@@ -38,9 +54,7 @@ class LocationService : Service() {
                     data.latitude, data.longitude, data.heading, data.confidence
                 )
             )
-            zoneDetector
-                ?.update(data.latitude, data.longitude, data.timestampMillis)
-                ?.forEach { onZoneEvent(it) }
+            onLocation(data.latitude, data.longitude, data.timestampMillis)
         }
 
         override fun onError(e: Exception) {
@@ -66,17 +80,24 @@ class LocationService : Service() {
             return
         }
 
-        zoneDetector = try {
-            val zones = ZoneLoader.load(applicationContext)
-            Log.d(
-                ZONE_TAG,
-                "zones loaded: school=${zones.schoolZones.size} speed=${zones.speedCameras.size} parking=${zones.parkingCameras.size}"
-            )
-            ZoneDetector(zones)
+        zones = try {
+            ZoneLoader.load(applicationContext).also {
+                Log.d(
+                    ZONE_TAG,
+                    "zones loaded: school=${it.schoolZones.size} speed=${it.speedCameras.size} parking=${it.parkingCameras.size}"
+                )
+            }
         } catch (e: Exception) {
             Log.e(ZONE_TAG, "zones.json load failed", e)
             null
         }
+
+        // TTS가 실패해도 서비스(위치·판단기)는 계속 돌아야 한다.
+        // 에뮬레이터에는 Android 기본 TTS 엔진이 없어 Pleos TTS를 쓴다(11/8 확인).
+        // Pleos TTS 객체는 앱 전체에서 하나만 쓴다(SpeechHub)
+        val sp = SpeechHub.obtain(applicationContext)
+        SpeechHub.addReadyListener(ttsReadyListener)
+        speaker = sp
 
         val fl = FusedLocation(applicationContext)
         fusedLocation = fl
@@ -85,8 +106,25 @@ class LocationService : Service() {
         fl.registerFusedLocationCallback(listener)
     }
 
-    /** 지금은 로그와 화면 기록만 남긴다. 다음 단계에서 안내 관리자로 넘긴다. */
-    private fun onZoneEvent(event: ZoneEvent) {
+    /** 위치마다: 새 주행인지 보고, 현재 주행에 위치를 넘긴다. */
+    private fun onLocation(lat: Double, lon: Double, timeMs: Long) {
+        val z = zones ?: return
+        val sp = speaker ?: return
+        if (tripBoundary.isNewTrip(lat, lon, timeMs) || session == null) {
+            sessionCount += 1
+            // 이전 주행의 안내는 새 주행과 상관없으므로 바로 끊는다
+            if (session != null) sp.stopAll()
+            // 문장 길이 규칙은 정책으로 바꿔 끼운다. 기본: 주행마다 처음 1번 2문장, 이후 1문장
+            session = DriveSession(sessionCount, timeMs, z, EnglishPhrasebook, EncounterBasedPolicy(), sp)
+            val jump = (tripBoundary as? JumpTripBoundary)?.lastJumpM?.toInt() ?: 0
+            val text = "새 주행 #$sessionCount 시작 (위치 이동 ${jump}m)"
+            Log.i(ZONE_TAG, text)
+            LocationState.addEvent(text)
+        }
+        session?.onLocation(lat, lon, timeMs)?.forEach { (event, utterance) -> onZoneEvent(event, utterance) }
+    }
+
+    private fun onZoneEvent(event: ZoneEvent, utterance: Utterance?) {
         val text = when (event) {
             is ZoneEvent.SchoolZoneEntered ->
                 "어린이보호구역 진입: ${event.zone.name} (${event.distanceM.toInt()}m), 제한 ${event.zone.speedLimitKmh}"
@@ -98,6 +136,17 @@ class LocationService : Service() {
         }
         Log.i(ZONE_TAG, text)
         LocationState.addEvent(text)
+
+        utterance?.let { u ->
+            Log.i(GUIDE_TAG, "[${u.rule} #${u.encounter} ${u.roles}] ${u.text}")
+            LocationState.addEvent("🔊 ${u.text}")
+            updateNotification(u.text)
+        }
+    }
+
+    private fun updateNotification(text: String) {
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIFICATION_ID, buildNotification(text))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -108,6 +157,10 @@ class LocationService : Service() {
             it.release()
         }
         fusedLocation = null
+        SpeechHub.removeReadyListener(ttsReadyListener)
+        SpeechHub.release()
+        speaker = null
+        session = null
         Log.d(TAG, "LocationService destroyed")
         super.onDestroy()
     }
@@ -121,17 +174,18 @@ class LocationService : Service() {
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
-    private fun buildNotification() =
+    private fun buildNotification(text: String = "주행 안내 준비 중") =
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Annyeong Drive")
-            .setContentText("주행 안내 준비 중")
+            .setContentText(text)
             .setOngoing(true)
             .build()
 
     companion object {
         const val TAG = "AnnyeongLoc"
         const val ZONE_TAG = "AnnyeongZone"
+        const val GUIDE_TAG = "AnnyeongGuide"
         private const val CHANNEL_ID = "drive_guide"
         private const val NOTIFICATION_ID = 1001
 

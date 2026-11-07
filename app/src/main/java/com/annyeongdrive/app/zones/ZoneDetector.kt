@@ -12,6 +12,9 @@ import kotlin.math.sin
  *   같은 제한속도의 카메라가 120m 안에서 30초 안에 또 잡히면(길 건너편 카메라) 건너뛴다.
  *   한 번 알린 카메라는 400m 넘게 멀어지면 다시 알릴 수 있다.
  * - 정차: 최근 6개 위치(약 5초)가 3m 안에 머물면 정차. 그때 100m 안의 주정차 카메라를 찾는다.
+ *
+ * 이 객체의 상태(알린 카메라, 들어간 보호구역 등)는 주행 하나 동안만 유효하다.
+ * 새 주행은 DriveSession이 판단기를 새로 만들어 시작한다.
  */
 class ZoneDetector(private val data: ZoneData) {
 
@@ -27,8 +30,8 @@ class ZoneDetector(private val data: ZoneData) {
     private data class RecentCamera(val lat: Double, val lon: Double, val limit: Int, val timeMs: Long)
 
     fun update(lat: Double, lon: Double, timeMs: Long): List<ZoneEvent> {
-        updateHeading(lat, lon)
         val events = mutableListOf<ZoneEvent>()
+        updateHeading(lat, lon)
         checkSchoolZones(lat, lon, events)
         checkSpeedCameras(lat, lon, timeMs, events)
         checkStop(lat, lon, events)
