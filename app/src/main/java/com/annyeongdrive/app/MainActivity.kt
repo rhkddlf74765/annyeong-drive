@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +24,17 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.location.LocationService
 import com.annyeongdrive.app.location.LocationState
+import com.annyeongdrive.app.speech.PleosTtsSpeaker
+import com.annyeongdrive.app.speech.SpeechHub
 import com.annyeongdrive.app.ui.theme.Annyeong_driveTheme
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+
+    // 기능 확인 ③: TTS 언어 지원 확인용
+    private var checkResultListener: SpeechHub.ResultListener? = null
+    private var checkReadyListener: SpeechHub.ReadyListener? = null
+    private val ttsResult = mutableStateOf("")
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
@@ -39,13 +48,58 @@ class MainActivity : ComponentActivity() {
         setContent {
             Annyeong_driveTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LocationStatus(Modifier.padding(innerPadding))
+                    Column(Modifier.padding(innerPadding)) {
+                        LocationStatus()
+                        TtsCheck(result = ttsResult.value, onClick = { runTtsCheck() })
+                    }
                 }
             }
         }
 
         val missing = REQUIRED_PERMISSIONS.filterNot(::isGranted)
         if (missing.isEmpty()) startServiceIfAllowed() else permissionLauncher.launch(missing.toTypedArray())
+    }
+
+    /** 기능 확인 ③: 서비스와 같은 Pleos TTS 객체로 세 언어를 읽어 본다. */
+    private fun runTtsCheck() {
+        removeCheckListeners()
+        val results = linkedMapOf<Locale, String>()
+        TTS_SAMPLES.forEach { (locale, _) -> results[locale] = "대기" }
+        fun show() {
+            ttsResult.value = results.entries.joinToString("\n") { "${it.key}: ${it.value}" }
+        }
+        ttsResult.value = "Pleos TTS 준비 중…"
+
+        val resultListener = SpeechHub.ResultListener { text, locale, err ->
+            // 주행 안내 문장은 무시하고 확인용 문장 결과만 본다
+            if (TTS_SAMPLES.any { it.first == locale && it.second == text }) {
+                results[locale] = if (err == null) "읽기 완료" else "실패($err)"
+                show()
+                Log.i(PleosTtsSpeaker.TAG, "TTS check $locale -> ${err ?: "OK"}")
+            }
+        }
+        val readyListener = SpeechHub.ReadyListener { ok, err ->
+            if (!ok) ttsResult.value = "Pleos TTS 초기화 실패: $err" else show()
+        }
+        checkResultListener = resultListener
+        checkReadyListener = readyListener
+        SpeechHub.addResultListener(resultListener)
+        SpeechHub.addReadyListener(readyListener)
+
+        val speaker = SpeechHub.obtain(this)
+        TTS_SAMPLES.forEach { (locale, text) -> speaker.speak(text, locale) }
+    }
+
+    private fun removeCheckListeners() {
+        checkResultListener?.let(SpeechHub::removeResultListener)
+        checkReadyListener?.let(SpeechHub::removeReadyListener)
+        checkResultListener = null
+        checkReadyListener = null
+    }
+
+    override fun onDestroy() {
+        removeCheckListeners()
+        super.onDestroy()
     }
 
     private fun isGranted(permission: String) =
@@ -65,13 +119,29 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        /** 확인용 짧은 문장. 일본어·번체는 원어민 검토 전 임시 문장이다. */
+        private val TTS_SAMPLES = listOf(
+            Locale.US to "School zone. Speed limit 30.",
+            Locale.JAPAN to "スクールゾーンです。制限速度は30キロです。",
+            Locale.TAIWAN to "學區路段，速限三十公里。",
+        )
         private const val PLEOS_FUSED_LOCATION = "pleos.car.permission.FUSED_LOCATION"
+        private const val PLEOS_TTS = "pleos.car.permission.TTS_SERVICE"
         private val REQUIRED_PERMISSIONS = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             PLEOS_FUSED_LOCATION,
+            PLEOS_TTS,
             Manifest.permission.POST_NOTIFICATIONS,
         )
+    }
+}
+
+@Composable
+fun TtsCheck(result: String, onClick: () -> Unit) {
+    Column(Modifier.padding(horizontal = 24.dp)) {
+        Button(onClick = onClick) { Text("TTS 언어 확인 (영·일·번체)") }
+        if (result.isNotEmpty()) Text(result)
     }
 }
 

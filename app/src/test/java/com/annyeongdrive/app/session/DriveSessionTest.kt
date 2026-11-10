@@ -38,6 +38,7 @@ class DriveSessionTest {
     /** LocationService와 같은 방식으로 주행을 나눠 돌린다. */
     private class Runner(private val zones: ZoneData, val speaker: FakeSpeaker = FakeSpeaker()) {
         private val boundary = JumpTripBoundary()
+        
         private var session: DriveSession? = null
         var sessions = 0
         fun feed(lat: Double, lon: Double, t: Long) {
