@@ -1,0 +1,283 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-08",
+  "source": "공공데이터포털 전국어린이보호구역표준데이터, 전국무인교통단속카메라표준데이터 (2026-05-06 기준)",
+  "corridorM": 500,
+  "schoolZones": [
+    {
+      "id": "SZ001",
+      "name": "서울수송초등학교",
+      "facilityType": "초등학교",
+      "lat": 37.63732397,
+      "lon": 127.0332052,
+      "radiusM": 300,
+      "speedLimitKmh": 30
+    },
+    {
+      "id": "SZ009",
+      "name": "서울번동초등학교",
+      "facilityType": "초등학교",
+      "lat": 37.62902557,
+      "lon": 127.0400394,
+      "radiusM": 300,
+      "speedLimitKmh": 30
+    },
+    {
+      "id": "SZ020",
+      "name": "꿈동산유치원",
+      "facilityType": "유치원",
+      "lat": 37.63215859,
+      "lon": 127.0383543,
+      "radiusM": 300,
+      "speedLimitKmh": 30
+    },
+    {
+      "id": "SZ031",
+      "name": "꼬꼬마어린이집",
+      "facilityType": "어린이집",
+      "lat": 37.62764456,
+      "lon": 127.042037,
+      "radiusM": 300,
+      "speedLimitKmh": 30
+    }
+  ],
+  "speedCameras": [
+    {
+      "id": "SCH9206",
+      "lat": 37.6282643,
+      "lon": 127.0447028,
+      "speedLimitKmh": 50,
+      "protectedZone": "none",
+      "road": "한천로",
+      "place": "SK청학에너지충전소 건너편"
+    },
+    {
+      "id": "SCH1043",
+      "lat": 37.6397111,
+      "lon": 127.0276601,
+      "speedLimitKmh": 50,
+      "protectedZone": "none",
+      "road": "도봉로",
+      "place": "강북구청교차로"
+    },
+    {
+      "id": "SCH7161",
+      "lat": 37.6321148,
+      "lon": 127.0379791,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "한천로",
+      "place": "꿈동산유치원 앞"
+    },
+    {
+      "id": "SCJ2755",
+      "lat": 37.6512692,
+      "lon": 127.0346715,
+      "speedLimitKmh": 30,
+      "protectedZone": "none",
+      "road": "노해로",
+      "place": "반석교회앞"
+    },
+    {
+      "id": "SCH0583",
+      "lat": 37.6319775,
+      "lon": 127.0377783,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "한천로",
+      "place": "번동4,5단지교차로"
+    },
+    {
+      "id": "SCH0573",
+      "lat": 37.6291562,
+      "lon": 127.0398028,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "오현로",
+      "place": "번동초교 건너편"
+    },
+    {
+      "id": "SCG1973",
+      "lat": 37.6291971,
+      "lon": 127.0400181,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "오현로",
+      "place": "번동초등학교 앞"
+    },
+    {
+      "id": "SCH6715",
+      "lat": 37.6499076,
+      "lon": 127.0380896,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "노해로",
+      "place": "사랑나무어린이집 건너편"
+    },
+    {
+      "id": "SCH0575",
+      "lat": 37.6364858,
+      "lon": 127.0320132,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "한천로",
+      "place": "수송초교 건너편"
+    },
+    {
+      "id": "SCG5687",
+      "lat": 37.6368401,
+      "lon": 127.0317291,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "한천로",
+      "place": "수송초교 앞"
+    },
+    {
+      "id": "SCG4394",
+      "lat": 37.6360163,
+      "lon": 127.0415874,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "덕릉로60길",
+      "place": "신창초교 건너편"
+    },
+    {
+      "id": "SCH6724",
+      "lat": 37.6362901,
+      "lon": 127.0414167,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "덕릉로",
+      "place": "신창초교 앞"
+    },
+    {
+      "id": "SCH0911",
+      "lat": 37.6321686,
+      "lon": 127.0424241,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "우이천로",
+      "place": "신화초교 건너편"
+    },
+    {
+      "id": "SCG5983",
+      "lat": 37.6316897,
+      "lon": 127.0413182,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "우이천로",
+      "place": "신화초교 앞"
+    },
+    {
+      "id": "SCH6726",
+      "lat": 37.6337824,
+      "lon": 127.0408781,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "우이천로",
+      "place": "신화초교입구"
+    },
+    {
+      "id": "SCH6714",
+      "lat": 37.6509734,
+      "lon": 127.0330783,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "노해로",
+      "place": "쌍문3동어린이집 앞"
+    },
+    {
+      "id": "SCJ7770",
+      "lat": 37.6436624,
+      "lon": 127.0314411,
+      "speedLimitKmh": 50,
+      "protectedZone": "none",
+      "road": "도봉로",
+      "place": "우이교교차로(쌍문동, 창동시장입구사거리→강북구청사거리)"
+    },
+    {
+      "id": "SCH1056",
+      "lat": 37.6511961,
+      "lon": 127.0360351,
+      "speedLimitKmh": 50,
+      "protectedZone": "none",
+      "road": "도봉로",
+      "place": "정의여중입구교차로"
+    },
+    {
+      "id": "SCG5974",
+      "lat": 37.6552801,
+      "lon": 127.0346001,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "도봉로",
+      "place": "창경초교 건너편"
+    },
+    {
+      "id": "SCJ7853",
+      "lat": 37.6391558,
+      "lon": 127.0386371,
+      "speedLimitKmh": 50,
+      "protectedZone": "none",
+      "road": "덕릉로",
+      "place": "창동골목시장 앞(창동, 우이3교교차로→창림초교교차로)"
+    },
+    {
+      "id": "SCH0904",
+      "lat": 37.6430381,
+      "lon": 127.0377947,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "덕릉로",
+      "place": "창동대우아파트 건너편"
+    },
+    {
+      "id": "SCG5977",
+      "lat": 37.6539476,
+      "lon": 127.0409484,
+      "speedLimitKmh": 30,
+      "protectedZone": "school",
+      "road": "해등로",
+      "place": "창동주공1단지아파트 앞"
+    },
+    {
+      "id": "SCH0902",
+      "lat": 37.6517423,
+      "lon": 127.0413074,
+      "speedLimitKmh": 50,
+      "protectedZone": "school",
+      "road": "노해로",
+      "place": "창원초교교차로"
+    }
+  ],
+  "parkingCameras": [
+    {
+      "id": "PC5",
+      "lat": 37.6251787,
+      "lon": 127.0330457,
+      "road": "오현로",
+      "place": "주차장위쪽"
+    },
+    {
+      "id": "PC7",
+      "lat": 37.6253082,
+      "lon": 127.0339339,
+      "road": "오현로",
+      "place": "주차장 아래쪽"
+    },
+    {
+      "id": "PC10",
+      "lat": 37.6241033,
+      "lon": 127.0379751,
+      "road": "오현로",
+      "place": "동문아파트"
+    },
+    {
+      "id": "PC20",
+      "lat": 37.6351259,
+      "lon": 127.0319081,
+      "road": "덕릉로",
+      "place": "강북북부시장"
+    }
+  ]
+}

@@ -37,6 +37,12 @@ android {
 }
 
 dependencies {
+    // Pleos Connect SDK
+    implementation(libs.pleos.vehicle)
+    implementation(libs.pleos.navihelper)
+    implementation(libs.pleos.fusedlocation)
+    implementation(libs.pleos.texttospeech)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

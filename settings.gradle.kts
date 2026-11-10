@@ -19,6 +19,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Pleos Playground SDK (토큰 불필요)
+        maven("https://nexus-playground.pleos.ai/repository/maven-releases/")
     }
 }
 
