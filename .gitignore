@@ -16,3 +16,12 @@ local.properties
 
 data/raw/
 logs/
+
+# Claude Code 설정·작업 문서 (로컬 전용)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+docs/handoff/
+
+# 기획 보고서 원본 (심사 공개 저장소에 올리지 않음)
+docs/reference/
