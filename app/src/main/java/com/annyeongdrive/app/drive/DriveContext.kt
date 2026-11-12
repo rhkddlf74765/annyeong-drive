@@ -9,6 +9,7 @@ package com.annyeongdrive.app.drive
  * @property learning 교육 진행 창구
  * @property stopPlaces 정차 장소 조회 창구
  * @property flags 기능 플래그
+ * @property returnGate 반납 처리 진입 확인 창구
  */
 data class DriveContext(
     val vehicle: VehicleSnapshot,
@@ -16,4 +17,5 @@ data class DriveContext(
     val learning: LearningStatusReader,
     val stopPlaces: StopPlaceLookup,
     val flags: FeatureFlags,
+    val returnGate: ReturnGate,
 )

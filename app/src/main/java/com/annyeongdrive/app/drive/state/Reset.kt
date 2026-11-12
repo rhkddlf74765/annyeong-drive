@@ -1,5 +1,6 @@
 package com.annyeongdrive.app.drive.state
 
+import com.annyeongdrive.app.drive.DriveAction
 import com.annyeongdrive.app.drive.DriveContext
 import com.annyeongdrive.app.drive.Transition
 
@@ -10,12 +11,11 @@ import com.annyeongdrive.app.drive.Transition
 data object Reset : TransientState {
 
     /**
-     * [구현 예정] 운전자 데이터 초기화를 지시하고 대기로 간다.
-     * implementation-plan.md 1단계 1-b에서 T5를 구현한다.
+     * 운전자 데이터 초기화를 지시하고 대기로 간다(T5).
      *
      * @param context 판단 정보
      * @return 대기로 가는 전이
      */
     override fun resolve(context: DriveContext): Transition =
-        TODO("구현 예정: 1-b T5")
+        Transition(Idle, listOf(DriveAction.ResetDriverData))
 }
