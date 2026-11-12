@@ -25,3 +25,6 @@ docs/handoff/
 
 # 기획 보고서 원본 (심사 공개 저장소에 올리지 않음)
 docs/reference/
+
+# Kotlin 컴파일러 캐시
+.kotlin/

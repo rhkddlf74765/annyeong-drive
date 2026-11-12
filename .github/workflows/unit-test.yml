@@ -1,0 +1,52 @@
+# JVM 단위 테스트를 자동으로 실행한다. 에뮬레이터는 쓰지 않는다.
+name: Unit Test
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# 같은 브랜치에 새 푸시가 오면 이전 실행을 취소한다.
+concurrency:
+  group: unit-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 저장소 가져오기
+        uses: actions/checkout@v4
+
+      # AGP 9는 JDK 17 이상이 필요하다. Android Studio 내장 JDK와 같은 21을 쓴다.
+      - name: JDK 21 설정
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Gradle 의존성과 빌드 캐시를 저장해 다음 실행을 빠르게 한다.
+      - name: Gradle 설정
+        uses: gradle/actions/setup-gradle@v4
+
+      # Windows에서 커밋한 gradlew는 실행 권한이 없을 수 있다.
+      - name: gradlew 실행 권한
+        run: chmod +x gradlew
+
+      - name: 단위 테스트 실행
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      # 실패했을 때 어떤 테스트가 왜 실패했는지 내려받아 볼 수 있게 한다.
+      - name: 테스트 보고서 올리기
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/test-results/testDebugUnitTest/
+          retention-days: 7
