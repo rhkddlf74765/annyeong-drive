@@ -9,21 +9,26 @@ import com.annyeongdrive.app.location.GeoPoint
 interface RentalStatusReader {
 
     /**
-     * 대여 설정(언어 선택 + 출발 전 점검)을 마친 대여가 있는지 알려 준다. T2·T3의 가드다.
+     * 대여 설정(언어 선택 + 출발 전 점검)을 마친 대여가 있는지 알려 준다.
+     * 상태 머신: T2, T3 가드
      *
      * @return 대여 설정을 마쳤으면 true
      */
     fun hasRentalSetup(): Boolean
 
     /**
-     * 반납 예정 시각 + N시간이 지나 예비 초기화를 해야 하는지 알려 준다. T4의 가드다.
+     * 반납 예정 시각 + N시간이 지나 예비 초기화를 해야 하는지 알려 준다.
+     * 상태 머신: T4 가드
      *
      * @return 예비 초기화 시각이 지났으면 true
      */
     fun isResetOverdue(): Boolean
 }
 
-/** 이어 보기로 다시 들어갈 교육·퀴즈 위치(B2). */
+/**
+ * 이어 보기로 다시 들어갈 교육·퀴즈 위치.
+ * 상태 머신: B2
+ */
 enum class LearningResumePoint {
     /** 학습 카드. */
     CARD,
@@ -38,28 +43,32 @@ enum class LearningResumePoint {
 interface LearningStatusReader {
 
     /**
-     * 이번 대여에서 교육을 시작한 적이 있는지 알려 준다. B1의 가드다.
+     * 이번 대여에서 교육을 시작한 적이 있는지 알려 준다.
+     * 상태 머신: B1 가드
      *
      * @return 교육 시작 화면에서 "교육 시작"을 누른 적이 있으면 true
      */
     fun hasStarted(): Boolean
 
     /**
-     * 시작했지만 끝내지 않은 교육이 있는지 알려 준다. T15의 가드다.
+     * 시작했지만 끝내지 않은 교육이 있는지 알려 준다.
+     * 상태 머신: T15 가드
      *
      * @return 미완료 교육이 있으면 true
      */
     fun hasUnfinished(): Boolean
 
     /**
-     * 지금 문제가 마지막 문항인지 알려 준다. T29·T30·B6의 가드다.
+     * 지금 문제가 마지막 문항인지 알려 준다.
+     * 상태 머신: T29, T30, B6 가드
      *
      * @return 마지막 문항이면 true
      */
     fun isLastQuestion(): Boolean
 
     /**
-     * 이어 보기로 들어갈 위치를 알려 준다(B2).
+     * 이어 보기로 들어갈 위치를 알려 준다.
+     * 상태 머신: B2
      *
      * @return 저장된 위치
      */
@@ -72,7 +81,8 @@ interface LearningStatusReader {
 interface StopPlaceLookup {
 
     /**
-     * 위치가 검수된 주정차 금지 구역 안이면 그 구역 식별자를 돌려준다. T13의 가드다.
+     * 위치가 검수된 주정차 금지 구역 안이면 그 구역 식별자를 돌려준다.
+     * 상태 머신: T13 가드
      * GPS 반경만으로 금지를 확정하지 않는다. 검수된 구역 데이터가 있을 때만 값을 돌려준다.
      *
      * @param point 정차한 위치
@@ -81,7 +91,8 @@ interface StopPlaceLookup {
     fun verifiedNoParkingZoneNear(point: GeoPoint): String?
 
     /**
-     * 위치가 주유소 반경 안인지 알려 준다. T14의 가드이고, 오주유 기능 플래그가 켜졌을 때만 부른다.
+     * 위치가 주유소 반경 안인지 알려 준다. 오주유 기능 플래그가 켜졌을 때만 부른다.
+     * 상태 머신: T14 가드
      *
      * @param point 정차한 위치
      * @return 주유소 반경 안이면 true
@@ -92,6 +103,8 @@ interface StopPlaceLookup {
 /**
  * 철회될 수 있는 기능의 켜짐 여부.
  *
- * @property fuelGuardEnabled 오주유 방지(T14)를 켤지. 기본은 꺼짐
+ * 상태 머신: T14 가드
+ *
+ * @property fuelGuardEnabled 오주유 방지를 켤지. 기본은 꺼짐
  */
 data class FeatureFlags(val fuelGuardEnabled: Boolean = false)

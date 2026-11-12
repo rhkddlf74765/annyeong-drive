@@ -7,22 +7,35 @@ package com.annyeongdrive.app.drive
  */
 sealed interface DriveAction {
 
-    /** 교육·퀴즈 화면을 팝업 없이 닫는다. */
+    /**
+     * 교육·퀴즈 화면을 팝업 없이 닫는다.
+     * 상태 머신: T9, T31, B7 (교육·퀴즈를 떠날 때)
+     */
     data object CloseLearningScreen : DriveAction
 
-    /** 학습 음성을 멈춘다. 교육 화면 닫기와 항상 같은 전이에서 함께 낸다. */
+    /**
+     * 학습 음성을 멈춘다. 교육 화면 닫기와 같은 전이에서 함께 내고, 사용자가 닫을 때도 낸다.
+     * 상태 머신: T9, T31, B7, T23
+     */
     data object StopLearningSpeech : DriveAction
 
     /**
-     * 검수된 주정차 구역에서 확인을 요청하는 경고를 음성과 heads-up 알림으로 낸다(T13).
+     * 검수된 주정차 구역에서 확인을 요청하는 경고를 음성과 heads-up 알림으로 낸다.
+     * 상태 머신: T13
      *
      * @property zoneId 검수된 구역 식별자
      */
     data class AnnounceParkingWarning(val zoneId: String) : DriveAction
 
-    /** 오주유 방지 확인 안내를 낸다(T14, 기능 플래그가 켜졌을 때만). */
+    /**
+     * 오주유 방지 확인 안내를 낸다. 기능 플래그가 켜졌을 때만 나온다.
+     * 상태 머신: T14
+     */
     data object AnnounceFuelCheck : DriveAction
 
-    /** 운전자 데이터(driver_session)를 지운다. 업체 데이터는 남긴다(T5). */
+    /**
+     * 운전자 데이터(driver_session)를 지운다. 업체 데이터는 남긴다.
+     * 상태 머신: T5
+     */
     data object ResetDriverData : DriveAction
 }

@@ -36,27 +36,31 @@ data class VehicleSnapshot(
 
     /**
      * 교육·퀴즈를 열 수 있는지 판단한다. 기어 P + 차속 0 + UX 제한 없음일 때만 참이다.
+     * 상태 머신: B1, T19, T21 가드
      *
      * @return 교육 진입 조건을 모두 만족하면 true
      */
     fun canOpenLearning(): Boolean = isParkedAndStopped() && ux == UxRestriction.NONE
 
     /**
-     * 주행 진입 신호가 있는지 판단한다. 기어 D/R 또는 차속 발생이다(T9, B4).
+     * 주행 진입 신호가 있는지 판단한다. 기어 D/R 또는 차속 발생이다.
+     * 상태 머신: T9, B4 가드
      *
      * @return 주행 진입 신호가 하나라도 있으면 true
      */
     fun hasDrivingSignal(): Boolean = isDrivingGear() || isMoving()
 
     /**
-     * 정차 진입 조건인지 판단한다. 기어 P + 차속 0이다(T11).
+     * 정차 진입 조건인지 판단한다. 기어 P + 차속 0이다.
+     * 상태 머신: T11 가드
      *
      * @return 기어가 P이고 차속이 0이면 true
      */
     fun isParkedAndStopped(): Boolean = gear == Gear.P && isStopped()
 
     /**
-     * 화면 제한이 걸려 있는지 판단한다(B7).
+     * 화면 제한이 걸려 있는지 판단한다.
+     * 상태 머신: B7 가드
      *
      * @return 제한이 확인되면 true. 알 수 없음은 false
      */

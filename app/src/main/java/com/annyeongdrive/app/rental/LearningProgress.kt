@@ -127,7 +127,8 @@ data class LearningProgress private constructor(
 ) {
 
     /**
-     * "교육 시작"을 누른 것으로 기록한다.
+     * "교육 시작"을 누른 것으로 기록한다. 이 기록이 맥락 판단의 "교육 시작 전" 가드가 된다.
+     * 상태 머신: B1 가드 (2-d에서 LearningStatusReader가 읽는다)
      *
      * @return 시작한 것으로 기록된 진행
      */
@@ -208,6 +209,7 @@ data class LearningProgress private constructor(
 
     /**
      * 시작했지만 끝내지 않은 교육이 있는지 판단한다. 건너뛴 문항도 미완료다.
+     * 상태 머신: T15 가드 (2-d에서 LearningStatusReader가 읽는다)
      *
      * @param order 핵심 퀴즈 문항 순서
      * @return 교육을 시작했고 응답하지 않은 문항이 있으면 true
@@ -216,6 +218,7 @@ data class LearningProgress private constructor(
 
     /**
      * 지금 보고 있는 문항이 마지막 문항인지 판단한다.
+     * 상태 머신: T29, T30, B6 가드 (2-d에서 LearningStatusReader가 읽는다)
      *
      * @param order 핵심 퀴즈 문항 순서
      * @return 마지막 문항을 보고 있으면 true

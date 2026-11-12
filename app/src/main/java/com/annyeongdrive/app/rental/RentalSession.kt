@@ -41,7 +41,8 @@ data class RentalSession private constructor(
 ) {
 
     /**
-     * 대여 설정(언어 선택 + 출발 전 점검)을 마쳤는지 알려 준다. 상태 머신 T2·T3의 가드다.
+     * 대여 설정(언어 선택 + 출발 전 점검)을 마쳤는지 알려 준다.
+     * 상태 머신: T2, T3 가드 (2-d에서 RentalStatusReader가 읽는다)
      *
      * @return 출발 전 점검을 마쳤으면 true
      */

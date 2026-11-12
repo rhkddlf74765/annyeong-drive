@@ -106,7 +106,8 @@ DriveCoordinator와 테스트는 원본 전이(T)와 보완 전이(B)를 모두 
 
 ### 확장된 상태 머신
 
-원본과 달라진 전이는 아래 표의 B1~B8이다.
+화살표마다 흐름 코드(T: 원본 전이, B: 보완 전이)를 붙였다. 원본과 달라진 전이는 아래 표의 B1~B8이다.
+코드에서는 같은 코드를 KDoc의 `상태 머신:` 줄과 분기 옆 주석(`// T7`)으로 달아 둔다. `grep -rnw "T7" app/src`로 구현 위치를 찾는다.
 
 ```mermaid
 %%{init: {"htmlLabels": false}}%%
@@ -119,33 +120,33 @@ stateDiagram-v2
     state "반납 처리" as Returning
     state "초기화" as Reset
 
-    [*] --> Idle
-    Idle --> Setup : 운전석 착좌 [대여 설정 없음]
-    Idle --> Parked : 운전석 착좌 [대여 설정 있음]
-    Setup --> Parked : 언어 선택 + 출발 전 점검 완료
-    Parked --> Driving : 기어 D/R 또는 차속 발생 (교육 화면·음성 즉시 중단)
-    Driving --> Parked : 기어 P + 차속 0
+    [*] --> Idle : T1
+    Idle --> Setup : T2 운전석 착좌 [대여 설정 없음]
+    Idle --> Parked : T3 운전석 착좌 [대여 설정 있음]
+    Setup --> Parked : T8 언어 선택 + 출발 전 점검 완료
+    Parked --> Driving : T9 기어 D/R 또는 차속 발생 (교육 화면·음성 즉시 중단)
+    Driving --> Parked : T11 기어 P + 차속 0
     state "반납 장소 확인 (확장 예정, 미구현)" as ReturnPlaceCheck
     state returnGate <<choice>>
-    Parked --> returnGate : "반납 완료" 버튼 (정차 중)
-    returnGate --> Returning : 반납 진입 확인 통과 (지금은 항상 통과)
-    returnGate --> ReturnPlaceCheck : 반납 장소 밖 [확장 예정]
-    Returning --> Reset : 관리자 코드 확인
-    Returning --> Parked : 취소 (정차 대기로)
-    Returning --> Driving : 기어 D/R 또는 차속 발생
-    Idle --> Reset : 앱 시작 시 반납 예정 + N시간 경과
-    Reset --> Idle
+    Parked --> returnGate : T31 "반납 완료" 버튼 (정차 중)
+    returnGate --> Returning : B8 반납 진입 확인 통과 (지금은 항상 통과)
+    returnGate --> ReturnPlaceCheck : B8 반납 장소 밖 [확장 예정]
+    Returning --> Reset : T32 관리자 코드 확인
+    Returning --> Parked : B3 취소 (정차 대기로)
+    Returning --> Driving : B4 기어 D/R 또는 차속 발생
+    Idle --> Reset : T4 앱 시작 시 반납 예정 + N시간 경과
+    Reset --> Idle : T5 운전자 데이터 삭제
 
     state Setup {
         state "언어 선택" as Lang
         state "출발 전 점검 (안전띠·유종·하이패스·반납 조건)" as Precheck
-        [*] --> Lang
-        Lang --> Precheck
+        [*] --> Lang : T6
+        Lang --> Precheck : T7 언어 선택
     }
 
     state Driving {
         state "일반 주행 (규칙 상기)" as Cruising
-        [*] --> Cruising
+        [*] --> Cruising : T10
         Cruising --> Cruising : P0 보호구역·제한속도·단속 카메라
         Cruising --> Cruising : P1 회전·유턴·요금소·차로 단속 접근
     }
@@ -159,22 +160,22 @@ stateDiagram-v2
         state "수동 도움 카드 (P1)" as Help
         state "오주유 방지 (뼈대, 기능 플래그)" as Fuel
         state ctx <<choice>>
-        [*] --> Context
+        [*] --> Context : T12
         Context --> ctx
-        ctx --> NoParking : 검수된 금지 구역 안
-        ctx --> Fuel : 주유소 반경 안 [기능 켜짐]
-        ctx --> Learning : 교육 시작 전 [교육 진입 조건]
-        ctx --> Resume : 미완료 교육 있음
-        ctx --> Rest : 그 외
-        NoParking --> Rest : 안내 확인
-        Fuel --> Rest : 안내 확인
-        Resume --> Learning : 이어 보기 (저장된 위치로)
-        Resume --> Rest : 나중에 보기
-        Rest --> Learning : 사용자가 교육·퀴즈 열기
-        Rest --> Help : 사용자가 도움 메뉴 선택
-        Help --> Rest : 닫기
-        Learning --> Rest : 완료·닫기
-        Learning --> Rest : UX 제한 발생 (교육 화면·음성 즉시 중단)
+        ctx --> NoParking : T13 검수된 금지 구역 안
+        ctx --> Fuel : T14 주유소 반경 안 [기능 켜짐]
+        ctx --> Learning : B1 교육 시작 전 [교육 진입 조건]
+        ctx --> Resume : T15 미완료 교육 있음
+        ctx --> Rest : T16 그 외
+        NoParking --> Rest : T17 안내 확인
+        Fuel --> Rest : T18 안내 확인
+        Resume --> Learning : T19·B2 이어 보기 (저장된 위치로)
+        Resume --> Rest : T20 나중에 보기
+        Rest --> Learning : T21 사용자가 교육·퀴즈 열기
+        Rest --> Help : T22 사용자가 도움 메뉴 선택
+        Help --> Rest : B5 닫기
+        Learning --> Rest : T23 완료·닫기
+        Learning --> Rest : B7 UX 제한 발생 (교육 화면·음성 즉시 중단)
     }
 
     state Learning {
@@ -183,14 +184,14 @@ stateDiagram-v2
         state "문제" as Quiz
         state "해설" as Explain
         state "결과·복습" as Result
-        [*] --> Start
-        Start --> Card
-        Card --> Quiz
-        Quiz --> Explain : 정답 확인
-        Quiz --> Quiz : 건너뛰기 (미완료로 남김)
-        Quiz --> Result : 마지막 문항 건너뛰기
-        Explain --> Quiz : 다음 문제
-        Explain --> Result : 마지막 문항
+        [*] --> Start : T24
+        Start --> Card : T25 교육 시작
+        Card --> Quiz : T26 핵심 퀴즈 시작
+        Quiz --> Explain : T27 정답 확인
+        Quiz --> Quiz : T28 건너뛰기 (미완료로 남김)
+        Quiz --> Result : B6 마지막 문항 건너뛰기
+        Explain --> Quiz : T29 다음 문제
+        Explain --> Result : T30 마지막 문항
     }
 ```
 
@@ -214,9 +215,9 @@ stateDiagram-v2
 - 본문의 "반납 처리 > 검수된 주정차 > …" 우선순위에서 반납 처리는 맥락 판단 분기에 넣지 않는다. 반납 처리는 정차 중 버튼으로만 들어가기 때문이다.
 - 교육·퀴즈로 들어가는 모든 전이(B1, 이어 보기, 정차 대기에서 열기)는 교육 진입 조건(기어 P + 차속 0 + UX 제한 없음)을 가드로 갖는다. 조건이 안 되면 B1은 다음 분기로 넘어가고, 사용자 동작은 무시한다.
 
-### 전이 번호 (테스트 근거용)
+### 흐름 코드 (상태 머신 인덱스)
 
-| 번호 | 전이 | 번호 | 전이 |
+| 코드 | 전이 | 코드 | 전이 |
 | --- | --- | --- | --- |
 | T1 | [*] → 대기 | T17 | 주정차 경고 → 정차 대기 |
 | T2 | 대기 → 대여 설정 | T18 | 오주유 방지 → 정차 대기 |
@@ -232,7 +233,11 @@ stateDiagram-v2
 | T12 | 정차 [*] → 맥락 판단 | T28 | 문제 → 문제 (건너뛰기) |
 | T13 | 분기 → 주정차 경고 | T29 | 해설 → 문제 |
 | T14 | 분기 → 오주유 방지 | T30 | 해설 → 결과·복습 |
-| T15 | 분기 → 이어 보기 | T31 | 정차 → 반납 처리 |
+| T15 | 분기 → 이어 보기 | T31 | 정차 → 반납 진입 확인 ("반납 완료") |
 | T16 | 분기 → 정차 대기 | T32 | 반납 처리 → 초기화 |
+| B1 | 분기 → 교육 시작 (교육 시작 전) | B5 | 도움 카드 → 정차 대기 |
+| B2 | 이어 보기는 저장된 위치로 (T19를 보완) | B6 | 문제 → 결과·복습 (마지막 문항 건너뛰기) |
+| B3 | 반납 처리 → 정차 대기 (취소) | B7 | 교육·퀴즈 → 정차 대기 (UX 제한) |
+| B4 | 반납 처리 → 주행 | B8 | 반납 진입 확인 → 반납 처리 / 반납 장소 확인 |
 
 일반 주행의 자기 전이(P0·P1 규칙 상기)는 8단계에서 번호를 붙인다.
