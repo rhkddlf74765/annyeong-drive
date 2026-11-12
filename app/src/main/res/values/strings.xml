@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Annyeong_drive</string>
+    <!-- 3단계 임시 홈 화면. 5단계에서 언어 선택·정차 화면으로 바뀐다. -->
+    <string name="home_preparing">새 화면을 준비하고 있어요.</string>
 </resources>

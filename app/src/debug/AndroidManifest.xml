@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    debug 빌드에만 합쳐지는 매니페스트. 기능 확인용 화면과 서비스를 등록한다.
+    release APK에는 들어가지 않는다(CLAUDE.md: 기능 확인용 코드는 app/src/debug/).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name=".debugtools.CheckActivity"
+            android:exported="true"
+            android:label="Annyeong 확인용"
+            android:theme="@style/Theme.Annyeong_drive">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".location.LocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+    </application>
+
+</manifest>
