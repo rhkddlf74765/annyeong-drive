@@ -48,15 +48,16 @@ class DriverSessionRepository(
     }
 
     /**
-     * 대여를 바꿔 즉시 저장한다.
+     * 대여를 바꿔 즉시 저장한다. 메모리([session])를 먼저 바꾸고 파일에 쓴다.
+     * 그래서 파일 쓰기가 끝나기 전에도 Coordinator는 바뀐 값을 읽는다(반납 직후 옛 대여를 읽지 않게).
      *
      * @param change 지금 대여(없으면 null)를 받아 새 대여를 돌려주는 함수. null을 돌려주면 지운다
      * @return 저장한 대여
      */
     suspend fun update(change: (RentalSession?) -> RentalSession?): RentalSession? {
         val next = change(latest.value)
-        dataStore.edit { prefs -> writeTo(prefs, next) }
         latest.value = next
+        dataStore.edit { prefs -> writeTo(prefs, next) }
         return next
     }
 
@@ -114,14 +115,15 @@ class VendorConfigRepository(
 
     /**
      * 업체 설정을 바꿔 즉시 저장한다. 관리자 코드 확인 결과(실패 횟수·잠금)도 이것으로 저장한다.
+     * 메모리([config])를 먼저 바꾸고 파일에 쓴다.
      *
      * @param change 지금 업체 설정을 받아 새 업체 설정을 돌려주는 함수
      * @return 저장한 업체 설정
      */
     suspend fun update(change: (VendorConfig) -> VendorConfig): VendorConfig {
         val next = change(latest.value)
-        dataStore.edit { prefs -> prefs[DOCUMENT_KEY] = codec.encode(next) }
         latest.value = next
+        dataStore.edit { prefs -> prefs[DOCUMENT_KEY] = codec.encode(next) }
         return next
     }
 }

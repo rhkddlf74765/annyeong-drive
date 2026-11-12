@@ -2,4 +2,9 @@
     <string name="app_name">Annyeong_drive</string>
     <!-- 3단계 임시 홈 화면. 5단계에서 언어 선택·정차 화면으로 바뀐다. -->
     <string name="home_preparing">새 화면을 준비하고 있어요.</string>
+    <!-- 주행 안내 서비스의 상주 알림 -->
+    <string name="drive_service_channel">주행 안내</string>
+    <string name="drive_service_running">주행 안내가 켜져 있어요.</string>
+    <!-- 위치 권한이 없어 주행 안내를 시작하지 못할 때 -->
+    <string name="home_location_needed">위치 권한을 허용하면 주행 안내를 시작해요.</string>
 </resources>
