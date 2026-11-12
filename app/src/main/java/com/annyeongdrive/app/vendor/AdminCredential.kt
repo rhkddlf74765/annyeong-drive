@@ -5,6 +5,7 @@ import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
 import java.util.Base64
+import java.util.Locale
 
 /**
  * 관리자 코드 확인 결과.
@@ -82,7 +83,7 @@ data class CredentialVerification(val check: AdminCodeCheck, val credential: Adm
 
 /**
  * 관리자 자격. 코드 원문은 저장하지 않고 salt와 SHA-256 해시만 둔다. 실패 횟수와 잠금도 여기서 관리한다.
- * 코드는 영문 대소문자와 숫자로 된 정확히 8자리이고 대소문자를 구분한다.
+ * 코드는 영문 대소문자와 숫자로 된 정확히 8자리다. 대소문자는 구분하지 않는다(대문자로 맞춘 뒤 해시한다).
  * [VendorConfig] 안에 있고, 바깥에서는 VendorConfig의 메서드로만 바꾼다. 불변 객체다.
  * 코드 변경은 4단계 업체 설정 화면에서 추가한다.
  * 근거: 결정 문서 5장.
@@ -126,7 +127,7 @@ data class AdminCredential private constructor(
     private fun matches(input: String): Boolean {
         val salt = Base64.getDecoder().decode(saltBase64)
         val expected = Base64.getDecoder().decode(hashBase64)
-        return MessageDigest.isEqual(hash(salt, input), expected)
+        return MessageDigest.isEqual(hash(salt, normalize(input)), expected)
     }
 
     /**
@@ -183,11 +184,19 @@ data class AdminCredential private constructor(
             val encoder = Base64.getEncoder()
             return AdminCredential(
                 saltBase64 = encoder.encodeToString(salt),
-                hashBase64 = encoder.encodeToString(hash(salt, code)),
+                hashBase64 = encoder.encodeToString(hash(salt, normalize(code))),
                 failedAttempts = 0,
                 lockedUntil = null,
             )
         }
+
+        /**
+         * 대소문자를 구분하지 않도록 코드를 대문자로 맞춘다.
+         *
+         * @param code 입력한 코드
+         * @return 대문자로 맞춘 코드
+         */
+        private fun normalize(code: String): String = code.uppercase(Locale.ROOT)
 
         /**
          * 관리자 코드에 쓸 수 있는 글자인지 판단한다. ASCII 영문 대소문자와 숫자만 허용한다.

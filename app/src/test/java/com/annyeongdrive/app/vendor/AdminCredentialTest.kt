@@ -74,15 +74,17 @@ class AdminCredentialTest {
         assertEquals(AdminCodeCheck.Verified, result.check)
     }
 
-    /** 대소문자만 다른 코드는 틀린 코드로 보는지 확인한다. */
+    /** 대소문자만 다른 코드는 같은 코드로 보는지 확인한다. */
     @Test
-    fun `대소문자가 다르면 틀린 코드다`() {
+    fun `대소문자가 달라도 같은 코드로 확인된다`() {
         // 상황
         val credential = AdminCredential.create(CODE, SALT_A)
         // 행동
-        val result = credential.verify(CODE.lowercase(), NOW, policy)
+        val lower = credential.verify(CODE.lowercase(), NOW, policy)
+        val upper = credential.verify(CODE.uppercase(), NOW, policy)
         // 결과
-        assertEquals(AdminCodeCheck.Wrong(4), result.check)
+        assertEquals(AdminCodeCheck.Verified, lower.check)
+        assertEquals(AdminCodeCheck.Verified, upper.check)
     }
 
     /** 틀린 코드를 넣으면 잠기기 전까지 남은 횟수가 줄어드는지 확인한다. */
