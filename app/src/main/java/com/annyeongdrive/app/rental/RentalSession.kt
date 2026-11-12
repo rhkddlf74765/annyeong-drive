@@ -1,5 +1,7 @@
 package com.annyeongdrive.app.rental
 
+import com.annyeongdrive.app.time.InstantIsoSerializer
+import kotlinx.serialization.Serializable
 import java.time.Instant
 
 /**
@@ -30,9 +32,11 @@ data class RentalStartRequest(
  * @property precheckCompleted 출발 전 점검을 마쳤는지
  * @property learning 교육·퀴즈 진행(읽기 전용)
  */
+@Serializable
 @ConsistentCopyVisibility
 data class RentalSession private constructor(
     val rentalId: String,
+    @Serializable(with = InstantIsoSerializer::class)
     val startedAt: Instant,
     val language: AppLanguage,
     val drivingCountry: String?,

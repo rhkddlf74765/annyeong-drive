@@ -1,5 +1,7 @@
 package com.annyeongdrive.app.vehicle
 
+import kotlinx.serialization.Serializable
+
 /** 플랫폼이 주행 중 화면 제한(CarUxRestrictions)을 걸었는지. */
 enum class UxRestriction {
     /** 제한 없음. 교육 화면을 열 수 있는 조건 중 하나다. */
@@ -62,6 +64,7 @@ enum class SeatBeltStatus {
  * 차량 유종. 지금은 업체 설정 값에서 온다.
  * 차량 신호(INFO_FUEL_TYPE) 확인 결과에 따라 항목을 다시 맞춘다.
  */
+@Serializable
 enum class FuelType {
     /** 휘발유. */
     GASOLINE,

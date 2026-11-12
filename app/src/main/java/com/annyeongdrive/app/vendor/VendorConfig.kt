@@ -1,12 +1,16 @@
 package com.annyeongdrive.app.vendor
 
+import com.annyeongdrive.app.time.DurationIsoSerializer
+import com.annyeongdrive.app.time.InstantIsoSerializer
 import com.annyeongdrive.app.vehicle.FuelType
+import kotlinx.serialization.Serializable
 import java.time.Duration
 import java.time.Instant
 
 /**
  * 하이패스 이용 여부. 업체가 정한 값만 쓴다. 단말기가 있다는 것을 이용 가능으로 해석하지 않는다.
  */
+@Serializable
 enum class HiPassAvailability {
     /** 업체가 아직 정하지 않았다. */
     UNKNOWN,
@@ -25,6 +29,7 @@ enum class HiPassAvailability {
  * @property hiPass 하이패스 이용 여부
  * @property hiPassSettlement 하이패스 통행료 정산 방식 안내. 없으면 null
  */
+@Serializable
 data class VehicleInfo(
     val fuelType: FuelType = FuelType.UNKNOWN,
     val hiPass: HiPassAvailability = HiPassAvailability.UNKNOWN,
@@ -38,8 +43,10 @@ data class VehicleInfo(
  * @property dueAt 반납 예정 시각. 없으면 예비 초기화를 하지 않는다
  * @property energyRule 연료·배터리 기준 안내. 없으면 null
  */
+@Serializable
 data class ReturnTerms(
     val place: String? = null,
+    @Serializable(with = InstantIsoSerializer::class)
     val dueAt: Instant? = null,
     val energyRule: String? = null,
 )
@@ -64,11 +71,13 @@ data class VendorVerification(val check: AdminCodeCheck, val config: VendorConfi
  * @property lockPolicy 관리자 코드 오류 잠금 기준
  * @property credential 관리자 자격. 처음 설치해 코드를 정하기 전이면 null
  */
+@Serializable
 @ConsistentCopyVisibility
 data class VendorConfig private constructor(
     val vehicle: VehicleInfo,
     val returnTerms: ReturnTerms,
     val contact: String?,
+    @Serializable(with = DurationIsoSerializer::class)
     val resetGrace: Duration,
     val lockPolicy: LockPolicy,
     val credential: AdminCredential?,

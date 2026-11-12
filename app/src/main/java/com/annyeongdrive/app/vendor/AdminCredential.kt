@@ -1,5 +1,8 @@
 package com.annyeongdrive.app.vendor
 
+import com.annyeongdrive.app.time.DurationIsoSerializer
+import com.annyeongdrive.app.time.InstantIsoSerializer
+import kotlinx.serialization.Serializable
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Duration
@@ -40,8 +43,10 @@ sealed interface AdminCodeCheck {
  * @property maxFailures 잠그기 전까지 허용하는 연속 실패 횟수
  * @property lockDuration 잠금 시간
  */
+@Serializable
 data class LockPolicy(
     val maxFailures: Int = 5,
+    @Serializable(with = DurationIsoSerializer::class)
     val lockDuration: Duration = Duration.ofSeconds(30),
 )
 
@@ -93,11 +98,13 @@ data class CredentialVerification(val check: AdminCodeCheck, val credential: Adm
  * @property failedAttempts 지금까지 연속으로 틀린 횟수
  * @property lockedUntil 잠금이 풀리는 시각. 잠기지 않았으면 null
  */
+@Serializable
 @ConsistentCopyVisibility
 data class AdminCredential private constructor(
     val saltBase64: String,
     val hashBase64: String,
     val failedAttempts: Int,
+    @Serializable(with = InstantIsoSerializer::class)
     val lockedUntil: Instant?,
 ) {
 

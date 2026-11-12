@@ -1,6 +1,9 @@
 package com.annyeongdrive.app.rental
 
+import kotlinx.serialization.Serializable
+
 /** 교육·퀴즈에서 이어 볼 수 있는 화면 종류. */
+@Serializable
 enum class LearningScreen {
     /** 학습 카드. */
     CARD,
@@ -15,9 +18,11 @@ enum class LearningScreen {
  * @property screen 화면 종류
  * @property itemId 카드 또는 문항의 고정 식별자(예: quiz.lane_direction)
  */
+@Serializable
 data class LearningPosition(val screen: LearningScreen, val itemId: String)
 
 /** 이번 회차에서 문항을 어떻게 처리했는지. 기록이 없으면 아직 보지 않은 문항이다. */
+@Serializable
 enum class ItemStatus {
     /** 정답 확인까지 마쳤다. */
     ANSWERED,
@@ -33,6 +38,7 @@ enum class ItemStatus {
  * @property status 처리 결과
  * @property correct 정답 여부. 건너뛴 문항은 null
  */
+@Serializable
 @ConsistentCopyVisibility
 data class ItemRecord private constructor(val status: ItemStatus, val correct: Boolean?) {
 
@@ -61,6 +67,7 @@ data class ItemRecord private constructor(val status: ItemStatus, val correct: B
  * @property position 이번 회차에서 마지막으로 본 위치. 아직 없으면 null
  * @property items 문항 식별자별 기록. 읽기 전용
  */
+@Serializable
 @ConsistentCopyVisibility
 data class LearningAttempt private constructor(
     val number: Int,
@@ -117,6 +124,7 @@ data class LearningAttempt private constructor(
  * @property reviewIds 복습 목록(틀렸거나 건너뛴 문항). 회차가 바뀌어도 남는다
  * @property viewedCardIds 본 학습 카드. 회차가 바뀌어도 남는다
  */
+@Serializable
 @ConsistentCopyVisibility
 data class LearningProgress private constructor(
     val contentVersion: String,
