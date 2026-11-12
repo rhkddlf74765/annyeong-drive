@@ -8,30 +8,32 @@
 ## P0 (1차 제출 필수)
 
 ### 0단계. 기존 코드 분류 (11/11) — 코드 변경 없음
-- [ ] `main`의 각 파일을 "옮겨 재사용할 판단·어댑터" / "확인용 하네스(src/debug로)" / "새 구조로 대체"로 나눈 표를 보고한다.
-- [ ] 기존 테스트(ZoneDetector, AnnouncementManager, DriveSession)가 무엇을 보장하는지 요약한다.
-- [ ] 기존 문구 중 도메인 원칙(30 고정 등)과 충돌하는 곳을 표시한다.
+- [x] `main`의 각 파일을 "옮겨 재사용할 판단·어댑터" / "확인용 하네스(src/debug로)" / "새 구조로 대체"로 나눈 표를 보고한다.
+- [x] 기존 테스트(ZoneDetector, AnnouncementManager, DriveSession)가 무엇을 보장하는지 요약한다.
+- [x] 기존 문구 중 도메인 원칙(30 고정 등)과 충돌하는 곳을 표시한다.
 
 ### 1단계. 판단 핵심: DriveCoordinator (11/11)
-- [ ] 패키지 구조 확정.
-- [ ] `DriveEvent`, `DriveState`(상태 패턴), `DriveAction` 정의.
-- [ ] 입력 인터페이스와 가짜 구현: `GearSource`/`FakeGearSource`, `SpeedSource`, `UxRestrictionSource`, `SeatBeltSource`, `FuelTypeSource`, `Clock`.
-- [ ] 시나리오 테스트
-  - [ ] 주정차 경고 구역 안에서 P를 넣으면 주정차 경고만 나오고 이어 보기는 나오지 않는다.
-  - [ ] 퀴즈 중 D로 바꾸면 교육 화면 닫기와 학습 음성 중단이 함께 나온다.
-  - [ ] UX 제한이 걸리면 기어와 상관없이 교육 화면이 닫힌다.
-  - [ ] 미완료 교육이 있는 상태로 정차하면 이어 보기 제안이 나온다.
-  - [ ] 대여 설정이 끝나면 교육 시작 화면 열기가 나온다.
-  - [ ] 착좌 해제만으로는 초기화하지 않는다.
+- [x] 패키지 구조 확정.
+- [x] `DriveEvent`, `DriveState`(상태 패턴), `DriveAction` 정의.
+- [x] 입력 인터페이스와 가짜 구현: `GearSource`/`FakeGearSource`, `SpeedSource`, `UxRestrictionSource`, `SeatBeltSource`, `FuelTypeSource`, `Clock`.
+- [x] 시나리오 테스트
+  - [x] 주정차 경고 구역 안에서 P를 넣으면 주정차 경고만 나오고 이어 보기는 나오지 않는다.
+  - [x] 퀴즈 중 D로 바꾸면 교육 화면 닫기와 학습 음성 중단이 함께 나온다.
+  - [x] UX 제한이 걸리면 기어와 상관없이 교육 화면이 닫힌다.
+  - [x] 미완료 교육이 있는 상태로 정차하면 이어 보기 제안이 나온다.
+  - [x] 대여 설정이 끝나면 교육 시작 화면 열기가 나온다.
+  - [x] 착좌 해제만으로는 초기화하지 않는다.
 - 완료 기준: 테스트 통과, Android import 없음.
+- 메모: 상태 머신은 `docs/state-machine.md` 원본 T1~T32 + 보완 B1~B8(흐름 코드를 코드 주석에 인덱스로 표기). 대기 상태를 떠나는 계기로 착좌 소스(`DriverSeatSource`)를 추가.
 
 ### 2단계. 데이터: 두 Aggregate와 저장소 (11/11~12)
-- [ ] 의존성 추가 승인: kotlinx.serialization 플러그인, DataStore(Preferences).
-- [ ] `RentalSession`(운전자 데이터 루트) + `LearningProgress`: 답하기, 건너뛰기, 이어 볼 위치, 처음부터 보기(복습 유지), 복습 목록.
-- [ ] `VendorConfig`(업체 데이터 루트) + `AdminCredential`: 최초 코드 설정, 해시 검증, 실패 횟수와 잠금, 반납 예정 + N시간 경과 판단.
-- [ ] JSON 직렬화(`schemaVersion`, `contentVersion` 처리)와 저장소 2개(`driver_session`, `vendor_config`), 앱 전체 공유 인스턴스.
-- [ ] 백업 제외 설정.
+- [x] 의존성 추가 승인: kotlinx.serialization 플러그인, DataStore(Preferences).
+- [x] `RentalSession`(운전자 데이터 루트) + `LearningProgress`: 답하기, 건너뛰기, 이어 볼 위치, 처음부터 보기(복습 유지), 복습 목록.
+- [x] `VendorConfig`(업체 데이터 루트) + `AdminCredential`: 최초 코드 설정, 해시 검증, 실패 횟수와 잠금, 반납 예정 + N시간 경과 판단.
+- [x] JSON 직렬화(`schemaVersion`, `contentVersion` 처리)와 저장소 2개(`driver_session`, `vendor_config`), 앱 전체 공유 인스턴스.
+- [x] 백업 제외 설정.
 - 완료 기준: 도메인 규칙과 직렬화 왕복 테스트 통과.
+- 메모: 관리자 코드는 영문·숫자 8자리, 대소문자 구분 없음. 예비 초기화 시간 N 기본 24시간. 문항 순서는 `QuizOrder` 인터페이스로 받는다(6단계 콘텐츠가 구현).
 
 ### 3단계. 서비스 골격과 확인용 코드 이동 (11/12)
 - [ ] 확인용 `LocationService` 등을 `app/src/debug/`로 이동.
@@ -42,6 +44,9 @@
 ### 4단계. 업체 설정 화면 + 반납 처리 (11/12)
 - [ ] 업체 설정 화면(최초 코드 설정, 이후 코드 입력 후 진입, 잠금).
 - [ ] 정차 중 "반납 완료" → 관리자 코드 → 운전자 데이터 초기화 → 대기 상태.
+- [ ] 관리자 코드 변경(현재 코드 확인 후 새 코드).
+- [ ] 업체 설정 파일이 깨져 읽지 못하면 업체 설정 화면 진입을 막는다(저장 없음과 읽기 실패를 구분).
+- [ ] 시연용 관리자 코드를 정해 README에 기록.
 - 완료 기준: 단위 테스트 + Preview. 시연용 코드는 README에 기록할 값으로 정한다.
 
 ### 5단계. 대여 시작: 언어 선택 + 출발 전 점검 (11/12)
@@ -72,6 +77,8 @@
 - [ ] 에뮬레이터 확인 1: 어댑터(UX 제한, TTS, 위치)가 Coordinator까지 들어오는가.
 - [ ] 에뮬레이터 확인 2: 내비 위 알림, 주행 시 교육 화면 닫힘, 정차 시 이어 보기.
 - [ ] 공통 시험 6종: 중복, 만료, 경로 변경, 내비·통화 충돌, UX 제한, 반납 후 삭제.
+- [ ] 에뮬레이터 확인 3: 앱을 껐다 켜도 대여·교육 진행·관리자 코드가 남는가(DataStore).
+- [ ] 에뮬레이터 확인 4: 클라우드 백업·기기 이전에서 앱 데이터가 빠지는가.
 
 ### 10단계. 영어 문구와 제출 (11/14)
 - [ ] `values-en` 영어 문구(번역이 도착하면).
