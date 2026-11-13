@@ -9,6 +9,8 @@ android {
     compileSdk {
         version = release(37)
     }
+    // 주행 중 화면 제한(CarUxRestrictionsManager). SDK에 들어 있는 차량용 라이브러리를 컴파일에 연결한다(7단계, 11/14 승인).
+    useLibrary("android.car")
 
     defaultConfig {
         applicationId = "com.annyeongdrive.app"
@@ -64,4 +66,4 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-}
+}

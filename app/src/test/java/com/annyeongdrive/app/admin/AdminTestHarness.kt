@@ -10,6 +10,7 @@ import com.annyeongdrive.app.learning.LearningEntryFlow
 import com.annyeongdrive.app.learning.LearningCatalog
 import com.annyeongdrive.app.learning.LearningFlow
 import com.annyeongdrive.app.learning.LearningPlans
+import com.annyeongdrive.app.learning.ResumeOfferFlow
 import com.annyeongdrive.app.rental.RentalStartRequest
 import com.annyeongdrive.app.service.DriveActionExecutor
 import com.annyeongdrive.app.setup.RentalSetupFlow
@@ -56,7 +57,7 @@ class MutableClock(var now: Instant) : Clock {
 }
 
 /**
- * 사용 흐름 테스트용 앱 한 벌(대여 시작·교육 시작·반납·업체 설정). 실제 DataStore 파일 위에 저장소·Coordinator·엔진·흐름을 조립한다.
+ * 사용 흐름 테스트용 앱 한 벌(대여 시작·교육·이어 보기 제안·반납·업체 설정). 실제 DataStore 파일 위에 저장소·Coordinator·엔진·흐름을 조립한다.
  * 같은 [TempDataStores]로 다시 만들면 앱을 껐다 켠 것과 같다(그 전에 [awaitWrites]와 stores.close()를 부른다).
  * 기본 콘텐츠는 비어 있어 교육을 시작한 대여는 정차 시 정차 대기로 간다. 교육·퀴즈 흐름 테스트는 [catalog]를 넘긴다.
  *
@@ -84,6 +85,9 @@ class AdminTestHarness(
     /** 가짜 입력 신호(처음 값: P · 0 · 제한 없음). */
     val signals = FakeDriveSignals()
 
+    /** 교육 화면 닫기·학습 음성 중단이 몇 번 실행됐는지 기록한다. */
+    val ports = RecordingPorts()
+
     /** 입력 → Coordinator → 출력 연결. 운전자 데이터 지우기는 실제 저장소로 한다. */
     val engine = DriveEngine(
         coordinator = DriveCoordinator(
@@ -99,8 +103,8 @@ class AdminTestHarness(
         sources = signals.asSources(),
         executor = DriveActionExecutor(
             DriveOutputPorts(
-                learningScreen = {},
-                learningSpeech = {},
+                learningScreen = ports.asPorts().learningScreen,
+                learningSpeech = ports.asPorts().learningSpeech,
                 driverData = RepositoryDriverDataEraser(driverSessions, writeScope),
                 notifier = RecordingPorts().asPorts().notifier,
             ),
@@ -131,6 +135,9 @@ class AdminTestHarness(
 
     /** 교육·퀴즈 흐름. */
     val learningFlow = LearningFlow(driverSessions, engine, plans)
+
+    /** 이어서 확인할까요 흐름. */
+    val resumeOffer = ResumeOfferFlow(driverSessions, engine)
 
     /** 앱을 시작하고(저장소 읽기 → AppStarted → 신호 구독) 운전석에 앉는다. 대여가 있으면 정차 대기로 간다. */
     suspend fun startAndSit() {

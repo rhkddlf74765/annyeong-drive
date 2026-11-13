@@ -8,16 +8,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,12 +21,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.drive.DriveEvent
 import com.annyeongdrive.app.drive.state.Learning
 import com.annyeongdrive.app.drive.state.LearningStart
+import com.annyeongdrive.app.drive.state.ParkedResumeOffer
 import com.annyeongdrive.app.drive.state.ParkedRest
 import com.annyeongdrive.app.drive.state.ParkedVendorSettings
 import com.annyeongdrive.app.drive.state.Returning
@@ -46,6 +41,10 @@ import com.annyeongdrive.app.setup.PrecheckView
 import com.annyeongdrive.app.ui.learning.LearningActions
 import com.annyeongdrive.app.ui.learning.LearningScreen
 import com.annyeongdrive.app.ui.learning.LearningStartScreen
+import com.annyeongdrive.app.ui.learning.ResumeOfferActions
+import com.annyeongdrive.app.ui.learning.ResumeOfferScreen
+import com.annyeongdrive.app.ui.parked.ParkedHome
+import com.annyeongdrive.app.ui.parked.ParkedHomeActions
 import com.annyeongdrive.app.ui.setup.LanguageScreen
 import com.annyeongdrive.app.ui.setup.PrecheckActions
 import com.annyeongdrive.app.ui.setup.PrecheckScreen
@@ -55,7 +54,7 @@ import kotlinx.coroutines.launch
 /**
  * 앱의 첫 화면. 위치·알림 권한을 받은 뒤 주행 안내 서비스(DriveService)를 시작하고,
  * Coordinator의 현재 운전 상태(engine.state)만 보고 화면을 고른다. 기어·차속을 직접 보지 않는다.
- * 지금은 정차 대기·반납 처리·업체 설정 화면이 있고, 나머지 상태의 화면은 5~7단계에서 붙인다.
+ * 대여 설정·교육·이어 보기 제안·정차 대기·반납 처리·업체 설정 화면이 있고, 주행 중 화면은 8단계에서 붙인다.
  * 기능 확인용 화면은 debug 빌드의 CheckActivity에 있다.
  */
 class MainActivity : ComponentActivity() {
@@ -151,6 +150,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     val learningEntry = runtime.learningEntryFlow
     val learningFlow = runtime.learningFlow
     val learningView by learningFlow.view.collectAsState()
+    val resumeOffer = runtime.resumeOfferFlow
     val scope = rememberCoroutineScope()
     val vendorFlow = runtime.vendorSettingsFlow
 
@@ -194,9 +194,22 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
+        ParkedResumeOffer -> ResumeOfferScreen(
+            availability = vehicle.learningAvailability(),
+            actions = ResumeOfferActions(
+                onResume = resumeOffer::resume,
+                onRestart = { scope.launch { resumeOffer.restart() } },
+                onLater = resumeOffer::later,
+            ),
+            modifier = modifier,
+        )
         ParkedRest -> ParkedHome(
-            onReturn = { runtime.engine.send(DriveEvent.ReturnRequested) },
-            onVendorSettings = { runtime.engine.send(DriveEvent.VendorSettingsRequested) },
+            availability = vehicle.learningAvailability(),
+            actions = ParkedHomeActions(
+                onOpenLearning = { runtime.engine.send(DriveEvent.LearningOpenRequested) },
+                onReturn = { runtime.engine.send(DriveEvent.ReturnRequested) },
+                onVendorSettings = { runtime.engine.send(DriveEvent.VendorSettingsRequested) },
+            ),
             modifier = modifier,
         )
         Returning -> ReturnScreen(
@@ -227,24 +240,6 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
 }
 
 /**
- * 정차 대기 임시 화면. 반납 완료(T31)와 작은 업체 설정 버튼(B9)이 있다. 5단계에서 실제 화면으로 바뀐다.
- *
- * @param onReturn 반납 완료를 눌렀을 때
- * @param onVendorSettings 업체 설정을 눌렀을 때
- * @param modifier 바깥에서 주는 배치 설정
- */
-@Composable
-fun ParkedHome(onReturn: () -> Unit, onVendorSettings: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.parked_home_title), style = MaterialTheme.typography.titleLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onReturn) { Text(stringResource(R.string.action_return)) }
-            TextButton(onClick = onVendorSettings) { Text(stringResource(R.string.action_vendor_settings)) }
-        }
-    }
-}
-
-/**
  * 안내 문구 화면. 화면 문구는 strings.xml의 문구 ID로 읽는다.
  *
  * @param messageId 보여 줄 문구 ID
@@ -257,13 +252,4 @@ fun HomeMessage(@StringRes messageId: Int, modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.titleLarge,
         modifier = modifier.padding(24.dp),
     )
-}
-
-/** 정차 대기 임시 화면 미리보기. */
-@Preview(showBackground = true)
-@Composable
-private fun ParkedHomePreview() {
-    Annyeong_driveTheme {
-        ParkedHome(onReturn = {}, onVendorSettings = {})
-    }
 }

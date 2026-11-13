@@ -40,6 +40,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Annyeong_drive">
+        <!-- 주행 중 화면 제한 신호. 차량이 아닌 기기에서도 설치되도록 필수로 두지 않는다. -->
+        <uses-library
+            android:name="android.car"
+            android:required="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -59,4 +64,4 @@
             android:foregroundServiceType="location" />
     </application>
 
-</manifest>
+</manifest>

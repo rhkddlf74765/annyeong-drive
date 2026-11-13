@@ -12,6 +12,16 @@
     <string name="parked_home_title">정차 중이에요.</string>
     <string name="action_return">반납 완료</string>
     <string name="action_vendor_settings">업체 설정</string>
+    <string name="action_learning_open">교육·퀴즈 열기</string>
+    <!-- 교육을 열 수 없을 때의 이유(부록 E 원문을 받기 전 임시 문구) -->
+    <string name="learning_unavailable_checking">차량 상태를 확인하고 있어요. 잠시 후 다시 눌러 주세요.</string>
+    <string name="learning_unavailable_restricted">차를 세우고 P로 바꾸면 열 수 있어요.</string>
+
+    <!-- 이어서 확인할까요(임시 문구) -->
+    <string name="resume_offer_title">이어서 확인할까요?</string>
+    <string name="resume_offer_body">지난번에 보던 곳부터 이어서 볼 수 있어요.</string>
+    <string name="action_resume">이어 보기</string>
+    <string name="action_restart">처음부터 보기</string>
 
     <!-- 공통 버튼 -->
     <string name="action_confirm">확인</string>

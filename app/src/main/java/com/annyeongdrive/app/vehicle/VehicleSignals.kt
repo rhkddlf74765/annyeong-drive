@@ -12,6 +12,22 @@ enum class UxRestriction {
 
     /** 신호 미수신. 제한 없음으로 간주하지 않는다. */
     UNKNOWN,
+    ;
+
+    companion object {
+        /**
+         * 플랫폼 화면 제한 값을 앱의 제한 상태로 바꾼다. 판단 없이 값만 옮긴다.
+         * 주행 중 화면 최적화가 필요하면(requiresDistractionOptimization) 제한이고, 아니면 제한 없음이다.
+         *
+         * @param requiresDistractionOptimization 플랫폼이 알려 준 값. 차량 서비스에 연결되지 않아 모르면 null
+         * @return 제한 상태. 값을 모르면 [UNKNOWN]
+         */
+        fun of(requiresDistractionOptimization: Boolean?): UxRestriction = when (requiresDistractionOptimization) {
+            true -> RESTRICTED
+            false -> NONE
+            null -> UNKNOWN
+        }
+    }
 }
 
 /** 운전석 착좌 상태. 착좌는 대기 상태를 떠나는 계기이고, 착좌 해제는 초기화 계기가 아니다. */

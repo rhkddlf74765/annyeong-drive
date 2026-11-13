@@ -47,6 +47,19 @@ data class VehicleSnapshot(
     fun canOpenLearning(): Boolean = isParkedAndStopped() && ux == UxRestriction.NONE
 
     /**
+     * 교육·퀴즈를 열 수 있는지와 열 수 없는 이유를 돌려준다. 정차 대기·이어 보기 화면이 보여 준다.
+     * 열 수 있는 조건은 [canOpenLearning]과 같고, 열 수 없을 때 아직 받지 못한 신호가 있으면 확인 중으로 본다.
+     * 상태 머신: T19, T21 가드의 화면 안내
+     *
+     * @return 교육을 열 수 있는지
+     */
+    fun learningAvailability(): LearningAvailability = when {
+        canOpenLearning() -> LearningAvailability.AVAILABLE
+        hasUnknownSignal() -> LearningAvailability.CHECKING_VEHICLE
+        else -> LearningAvailability.RESTRICTED
+    }
+
+    /**
      * 주행 진입 신호가 있는지 판단한다. 기어 D/R 또는 차속 발생이다.
      * 상태 머신: T9, B4 가드
      *
@@ -69,6 +82,14 @@ data class VehicleSnapshot(
      * @return 제한이 확인되면 true. 알 수 없음은 false
      */
     fun isUxRestricted(): Boolean = ux == UxRestriction.RESTRICTED
+
+    /**
+     * 교육 진입 조건에 쓰는 신호(기어·차속·화면 제한) 중 아직 받지 못한 것이 있는지 판단한다.
+     *
+     * @return 하나라도 알 수 없으면 true
+     */
+    private fun hasUnknownSignal(): Boolean =
+        gear == Gear.UNKNOWN || speedKmh == null || ux == UxRestriction.UNKNOWN
 
     /**
      * 기어가 주행 기어(D 또는 R)인지 판단한다.

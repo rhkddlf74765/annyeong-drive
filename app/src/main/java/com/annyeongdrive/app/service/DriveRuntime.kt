@@ -15,6 +15,7 @@ import com.annyeongdrive.app.learning.CURRENT_CONTENT_VERSION
 import com.annyeongdrive.app.learning.LearningEntryFlow
 import com.annyeongdrive.app.learning.LearningFlow
 import com.annyeongdrive.app.learning.LearningPlans
+import com.annyeongdrive.app.learning.ResumeOfferFlow
 import com.annyeongdrive.app.setup.DefaultRentalStarts
 import com.annyeongdrive.app.setup.RentalSetupFlow
 import com.annyeongdrive.app.setup.UuidRentalIdSource
@@ -49,7 +50,10 @@ class DriveRuntime(context: Context) {
     /** 업체 데이터 저장소. */
     val vendorConfigs = VendorConfigRepository(AppDataStores.vendorConfig(appContext))
 
-    /** 가짜 입력 어댑터 한 벌. 실제 차량 신호가 연결되면 이 자리를 바꾼다. */
+    /**
+     * 가짜 입력 어댑터 한 벌. 실제 차량 신호가 연결되면 이 자리를 바꾼다.
+     * release 빌드에서는 화면 제한만 실제 신호를 쓰므로 여기의 화면 제한 가짜는 엔진에 연결되지 않는다.
+     */
     val fakeSignals = FakeDriveSignals()
 
     /** 이 대여의 교육 계획(콘텐츠 × 대여·업체 설정). Coordinator에는 문항 순서로 쓰인다. */
@@ -70,7 +74,7 @@ class DriveRuntime(context: Context) {
     /** 입력 → Coordinator → 출력 연결. 서비스가 시작·멈춤을 맡고, 화면은 상태를 읽는다. */
     val engine = DriveEngine(
         coordinator = coordinator,
-        sources = fakeSignals.asSources(),
+        sources = driveSignalSources(appContext, fakeSignals),
         executor = DriveActionExecutor(
             DriveOutputPorts(
                 learningScreen = NoLearningScreen(),
@@ -105,4 +109,7 @@ class DriveRuntime(context: Context) {
 
     /** 교육·퀴즈 화면의 흐름. */
     val learningFlow = LearningFlow(driverSessions, engine, learningPlans)
+
+    /** 이어서 확인할까요 화면의 흐름. */
+    val resumeOfferFlow = ResumeOfferFlow(driverSessions, engine)
 }
