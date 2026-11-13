@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     debug 빌드에만 합쳐지는 매니페스트. 기능 확인용 화면과 서비스를 등록한다.
+    확인용 화면은 앱 화면과 다른 작업(taskAffinity)을 써서, 두 아이콘을 눌러 서로 오갈 수 있게 한다.
     release APK에는 들어가지 않는다(CLAUDE.md: 기능 확인용 코드는 app/src/debug/).
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -10,6 +11,7 @@
             android:name=".debugtools.CheckActivity"
             android:exported="true"
             android:label="Annyeong 확인용"
+            android:taskAffinity="com.annyeongdrive.app.check"
             android:theme="@style/Theme.Annyeong_drive">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
