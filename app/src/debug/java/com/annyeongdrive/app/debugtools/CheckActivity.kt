@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,16 +24,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.annyeongdrive.app.AnnyeongApplication
 import com.annyeongdrive.app.location.LocationService
 import com.annyeongdrive.app.location.LocationState
 import com.annyeongdrive.app.speech.PleosTtsSpeaker
+import com.annyeongdrive.app.service.DriveService
 import com.annyeongdrive.app.speech.SpeechHub
 import com.annyeongdrive.app.ui.theme.Annyeong_driveTheme
 import java.util.Locale
 
 /**
- * 기능 확인용 화면(debug 빌드 전용). 위치 수신·구역 사건·TTS 언어를 숫자와 글로 보여 준다.
- * 11/8 기능 확인 때의 MainActivity를 그대로 옮겼다. release APK에는 들어가지 않는다.
+ * 기능 확인용 화면(debug 빌드 전용). 가짜 신호 조작과 운전 상태, 위치 수신·구역 사건·TTS 언어를 보여 준다.
+ * 위치·TTS 확인은 11/8 기능 확인 때의 MainActivity를 그대로 옮긴 것이다. release APK에는 들어가지 않는다.
  */
 class CheckActivity : ComponentActivity() {
 
@@ -52,7 +56,8 @@ class CheckActivity : ComponentActivity() {
         setContent {
             Annyeong_driveTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(Modifier.padding(innerPadding)) {
+                    Column(Modifier.padding(innerPadding).verticalScroll(rememberScrollState())) {
+                        SignalPanel((application as AnnyeongApplication).runtime)
                         LocationStatus()
                         TtsCheck(result = ttsResult.value, onClick = { runTtsCheck() })
                     }
@@ -117,6 +122,7 @@ class CheckActivity : ComponentActivity() {
         Log.d(LocationService.TAG, "androidLocation=$androidLocation pleosLocation=$pleosLocation")
         if (androidLocation) {
             LocationService.start(this)
+            DriveService.start(this)
         } else {
             LocationState.fail("위치 권한이 거부되었다")
         }
