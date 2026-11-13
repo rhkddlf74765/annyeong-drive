@@ -225,16 +225,46 @@ data class LearningProgress private constructor(
     fun hasUnfinished(order: List<String>): Boolean = begun && remainingCount(order) > 0
 
     /**
-     * 지금 보고 있는 문항이 마지막 문항인지 판단한다.
+     * 지금 보고 있는 문항 뒤에 응답하지 않은 문항이 더 없는지 판단한다. 다음 문제가 없으면 결과로 간다.
+     * 이어 보기로 중간 문항에 들어온 경우에도 [nextUnansweredAfterPosition]과 같은 기준으로 판단한다(6단계).
      * 상태 머신: T29, T30, B6 가드 (2-d에서 LearningStatusReader가 읽는다)
      *
      * @param order 핵심 퀴즈 문항 순서
-     * @return 마지막 문항을 보고 있으면 true
+     * @return 문항을 보고 있고 그 뒤에 응답하지 않은 문항이 없으면 true
      */
     fun isLastQuestion(order: List<String>): Boolean {
         val position = attempt.position ?: return false
-        return position.screen == LearningScreen.QUIZ && position.itemId == order.lastOrNull()
+        if (position.screen != LearningScreen.QUIZ) return false
+        return nextUnansweredAfterPosition(order) == null
     }
+
+    /**
+     * 지금 보고 있는 문항 뒤에서 응답하지 않은 첫 문항을 찾는다. 다음 문제로 갈 곳이다.
+     * 지금 위치가 문항 순서에 없으면 처음부터 찾는다.
+     *
+     * @param order 핵심 퀴즈 문항 순서
+     * @return 다음 문항 식별자. 없으면 null
+     */
+    fun nextUnansweredAfterPosition(order: List<String>): String? {
+        val current = order.indexOf(attempt.position?.itemId)
+        return order.drop(current + 1).firstOrNull { !attempt.isAnswered(it) }
+    }
+
+    /**
+     * 순서에서 응답하지 않은 첫 문항을 찾는다. 건너뛴 문항도 응답하지 않은 문항이다.
+     *
+     * @param order 핵심 퀴즈 문항 순서
+     * @return 문항 식별자. 모두 응답했으면 null
+     */
+    fun firstUnanswered(order: List<String>): String? = order.firstOrNull { !attempt.isAnswered(it) }
+
+    /**
+     * 정답을 확인한 문항이 맞았는지 돌려준다. 해설 화면이 쓴다.
+     *
+     * @param itemId 문항 식별자
+     * @return 확인한 문항이면 정답 여부, 아니면 null
+     */
+    fun answeredCorrectly(itemId: String): Boolean? = attempt.items[itemId]?.correct
 
     /**
      * 교육 문구 버전에 맞춘 진행을 돌려준다. 버전이 다르면 진행을 버리고 새로 시작한다(결정 문서 4장).

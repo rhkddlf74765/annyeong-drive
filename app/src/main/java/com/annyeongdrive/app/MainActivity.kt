@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.drive.DriveEvent
+import com.annyeongdrive.app.drive.state.Learning
 import com.annyeongdrive.app.drive.state.LearningStart
 import com.annyeongdrive.app.drive.state.ParkedRest
 import com.annyeongdrive.app.drive.state.ParkedVendorSettings
@@ -42,6 +43,8 @@ import com.annyeongdrive.app.ui.admin.ReturnScreen
 import com.annyeongdrive.app.ui.admin.VendorSettingsActions
 import com.annyeongdrive.app.ui.admin.VendorSettingsView
 import com.annyeongdrive.app.setup.PrecheckView
+import com.annyeongdrive.app.ui.learning.LearningActions
+import com.annyeongdrive.app.ui.learning.LearningScreen
 import com.annyeongdrive.app.ui.learning.LearningStartScreen
 import com.annyeongdrive.app.ui.setup.LanguageScreen
 import com.annyeongdrive.app.ui.setup.PrecheckActions
@@ -146,11 +149,14 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     val precheck by runtime.rentalSetupFlow.precheck.collectAsState()
     val setupFlow = runtime.rentalSetupFlow
     val learningEntry = runtime.learningEntryFlow
+    val learningFlow = runtime.learningFlow
+    val learningView by learningFlow.view.collectAsState()
     val scope = rememberCoroutineScope()
     val vendorFlow = runtime.vendorSettingsFlow
 
     LaunchedEffect(driveState) {
         vendorFlow.syncWithDrive()
+        learningFlow.sync()
         if (driveState == Returning) runtime.returnFlow.open()
         if (driveState == ParkedVendorSettings) vendorFlow.open()
     }
@@ -172,6 +178,20 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
         LearningStart -> LearningStartScreen(
             onBegin = { scope.launch { learningEntry.begin() } },
             onLater = learningEntry::later,
+            modifier = modifier,
+        )
+        is Learning -> LearningScreen(
+            view = learningView,
+            actions = LearningActions(
+                onPreviousCard = { scope.launch { learningFlow.previousCard() } },
+                onNextCard = { scope.launch { learningFlow.nextCard() } },
+                onStartQuiz = { scope.launch { learningFlow.startQuiz() } },
+                onSelect = learningFlow::selectAnswer,
+                onCheck = { scope.launch { learningFlow.checkAnswer() } },
+                onSkip = { scope.launch { learningFlow.skip() } },
+                onNext = { scope.launch { learningFlow.next() } },
+                onClose = learningFlow::close,
+            ),
             modifier = modifier,
         )
         ParkedRest -> ParkedHome(

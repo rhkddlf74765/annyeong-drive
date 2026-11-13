@@ -7,7 +7,9 @@ import com.annyeongdrive.app.drive.FeatureFlags
 import com.annyeongdrive.app.drive.NoStopPlaces
 import com.annyeongdrive.app.drive.VehicleSnapshot
 import com.annyeongdrive.app.learning.LearningEntryFlow
-import com.annyeongdrive.app.learning.QuizOrder
+import com.annyeongdrive.app.learning.LearningCatalog
+import com.annyeongdrive.app.learning.LearningFlow
+import com.annyeongdrive.app.learning.LearningPlans
 import com.annyeongdrive.app.rental.RentalStartRequest
 import com.annyeongdrive.app.service.DriveActionExecutor
 import com.annyeongdrive.app.setup.RentalSetupFlow
@@ -56,16 +58,18 @@ class MutableClock(var now: Instant) : Clock {
 /**
  * 사용 흐름 테스트용 앱 한 벌(대여 시작·교육 시작·반납·업체 설정). 실제 DataStore 파일 위에 저장소·Coordinator·엔진·흐름을 조립한다.
  * 같은 [TempDataStores]로 다시 만들면 앱을 껐다 켠 것과 같다(그 전에 [awaitWrites]와 stores.close()를 부른다).
- * 문항 순서는 비어 있어(6단계 콘텐츠 전) 교육을 시작한 대여는 정차 시 정차 대기로 간다.
+ * 기본 콘텐츠는 비어 있어 교육을 시작한 대여는 정차 시 정차 대기로 간다. 교육·퀴즈 흐름 테스트는 [catalog]를 넘긴다.
  *
  * @param stores 임시 저장 파일
  * @param writeScope 운전자 데이터 지우기처럼 이어서 끝나는 파일 쓰기의 범위
  * @param clock 시계
+ * @param catalog 교육 콘텐츠
  */
 class AdminTestHarness(
     stores: TempDataStores,
     private val writeScope: CoroutineScope,
     val clock: MutableClock = MutableClock(StorageFixtures.NOW),
+    catalog: LearningCatalog = EMPTY_CATALOG,
 ) {
 
     /** 운전자 데이터 저장소. */
@@ -73,6 +77,9 @@ class AdminTestHarness(
 
     /** 업체 데이터 저장소. */
     val vendorConfigs = VendorConfigRepository(stores.open(VENDOR))
+
+    /** 이 대여의 교육 계획. */
+    val plans = LearningPlans(catalog, driverSessions.session, vendorConfigs.config)
 
     /** 가짜 입력 신호(처음 값: P · 0 · 제한 없음). */
     val signals = FakeDriveSignals()
@@ -83,7 +90,7 @@ class AdminTestHarness(
             DriveContext(
                 vehicle = VehicleSnapshot.UNKNOWN,
                 rental = StoredRentalStatusReader(driverSessions.session, vendorConfigs.config, clock),
-                learning = StoredLearningStatusReader(driverSessions.session, QuizOrder { emptyList() }),
+                learning = StoredLearningStatusReader(driverSessions.session, plans),
                 stopPlaces = NoStopPlaces(),
                 flags = FeatureFlags(),
                 returnGate = AlwaysPassReturnGate(),
@@ -122,6 +129,9 @@ class AdminTestHarness(
     /** 교육 시작 흐름. */
     val learningEntry = LearningEntryFlow(driverSessions, engine)
 
+    /** 교육·퀴즈 흐름. */
+    val learningFlow = LearningFlow(driverSessions, engine, plans)
+
     /** 앱을 시작하고(저장소 읽기 → AppStarted → 신호 구독) 운전석에 앉는다. 대여가 있으면 정차 대기로 간다. */
     suspend fun startAndSit() {
         startup.start()
@@ -142,6 +152,9 @@ class AdminTestHarness(
 
         /** 언어를 골라 새로 시작한 대여의 식별자. */
         const val NEW_RENTAL_ID = "rental-new"
+
+        /** 카드·문항이 없는 콘텐츠. */
+        val EMPTY_CATALOG = LearningCatalog(StorageFixtures.CONTENT_VERSION, emptyList(), emptyList())
 
         /**
          * 지난 실행에서 저장해 둔 파일을 만든다(대여·업체 설정). 끝나면 파일을 닫는다.

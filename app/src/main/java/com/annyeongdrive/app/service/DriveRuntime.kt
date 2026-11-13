@@ -10,9 +10,11 @@ import com.annyeongdrive.app.drive.DriveCoordinator
 import com.annyeongdrive.app.drive.FeatureFlags
 import com.annyeongdrive.app.drive.NoStopPlaces
 import com.annyeongdrive.app.drive.VehicleSnapshot
+import com.annyeongdrive.app.learning.CORE_CATALOG
 import com.annyeongdrive.app.learning.CURRENT_CONTENT_VERSION
 import com.annyeongdrive.app.learning.LearningEntryFlow
-import com.annyeongdrive.app.learning.NO_QUIZ_YET
+import com.annyeongdrive.app.learning.LearningFlow
+import com.annyeongdrive.app.learning.LearningPlans
 import com.annyeongdrive.app.setup.DefaultRentalStarts
 import com.annyeongdrive.app.setup.RentalSetupFlow
 import com.annyeongdrive.app.setup.UuidRentalIdSource
@@ -50,12 +52,15 @@ class DriveRuntime(context: Context) {
     /** 가짜 입력 어댑터 한 벌. 실제 차량 신호가 연결되면 이 자리를 바꾼다. */
     val fakeSignals = FakeDriveSignals()
 
+    /** 이 대여의 교육 계획(콘텐츠 × 대여·업체 설정). Coordinator에는 문항 순서로 쓰인다. */
+    val learningPlans = LearningPlans(CORE_CATALOG, driverSessions.session, vendorConfigs.config)
+
     /** 판단 핵심. */
     val coordinator = DriveCoordinator(
         DriveContext(
             vehicle = VehicleSnapshot.UNKNOWN,
             rental = StoredRentalStatusReader(driverSessions.session, vendorConfigs.config, clock),
-            learning = StoredLearningStatusReader(driverSessions.session, NO_QUIZ_YET),
+            learning = StoredLearningStatusReader(driverSessions.session, learningPlans),
             stopPlaces = NoStopPlaces(),
             flags = FeatureFlags(),
             returnGate = AlwaysPassReturnGate(),
@@ -97,4 +102,7 @@ class DriveRuntime(context: Context) {
 
     /** 교육 시작 화면의 흐름. */
     val learningEntryFlow = LearningEntryFlow(driverSessions, engine)
+
+    /** 교육·퀴즈 화면의 흐름. */
+    val learningFlow = LearningFlow(driverSessions, engine, learningPlans)
 }
