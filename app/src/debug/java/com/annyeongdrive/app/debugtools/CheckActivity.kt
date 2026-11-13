@@ -121,7 +121,7 @@ class CheckActivity : ComponentActivity() {
         val pleosLocation = isGranted(PLEOS_FUSED_LOCATION)
         Log.d(LocationService.TAG, "androidLocation=$androidLocation pleosLocation=$pleosLocation")
         if (androidLocation) {
-            LocationService.start(this)
+            // 옛 확인용 LocationService는 시작하지 않는다. 같은 위치로 옛 방식 안내를 따로 말해 새 경로(DriveService)와 음성이 겹치기 때문이다(11/14).
             DriveService.start(this)
         } else {
             LocationState.fail("위치 권한이 거부되었다")
