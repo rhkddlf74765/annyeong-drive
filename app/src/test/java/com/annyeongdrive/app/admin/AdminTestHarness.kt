@@ -6,8 +6,12 @@ import com.annyeongdrive.app.drive.DriveCoordinator
 import com.annyeongdrive.app.drive.FeatureFlags
 import com.annyeongdrive.app.drive.NoStopPlaces
 import com.annyeongdrive.app.drive.VehicleSnapshot
+import com.annyeongdrive.app.learning.LearningEntryFlow
 import com.annyeongdrive.app.learning.QuizOrder
+import com.annyeongdrive.app.rental.RentalStartRequest
 import com.annyeongdrive.app.service.DriveActionExecutor
+import com.annyeongdrive.app.setup.RentalSetupFlow
+import com.annyeongdrive.app.setup.RentalStarts
 import com.annyeongdrive.app.service.DriveEngine
 import com.annyeongdrive.app.service.DriveOutputPorts
 import com.annyeongdrive.app.service.DriveStartup
@@ -50,7 +54,7 @@ class MutableClock(var now: Instant) : Clock {
 }
 
 /**
- * 반납·업체 설정 흐름 테스트용 앱 한 벌. 실제 DataStore 파일 위에 저장소·Coordinator·엔진·흐름을 조립한다.
+ * 사용 흐름 테스트용 앱 한 벌(대여 시작·교육 시작·반납·업체 설정). 실제 DataStore 파일 위에 저장소·Coordinator·엔진·흐름을 조립한다.
  * 같은 [TempDataStores]로 다시 만들면 앱을 껐다 켠 것과 같다(그 전에 [awaitWrites]와 stores.close()를 부른다).
  * 문항 순서는 비어 있어(6단계 콘텐츠 전) 교육을 시작한 대여는 정차 시 정차 대기로 간다.
  *
@@ -108,6 +112,16 @@ class AdminTestHarness(
     /** 업체 설정 흐름. */
     val vendorFlow = VendorSettingsFlow(gate, vendorConfigs, engine)
 
+    /** 대여 설정 흐름. 새 대여 식별자는 [NEW_RENTAL_ID]로 고정한다. */
+    val setupFlow = RentalSetupFlow(
+        driverSessions,
+        engine,
+        RentalStarts { language -> RentalStartRequest(NEW_RENTAL_ID, clock.now(), language, StorageFixtures.CONTENT_VERSION) },
+    )
+
+    /** 교육 시작 흐름. */
+    val learningEntry = LearningEntryFlow(driverSessions, engine)
+
     /** 앱을 시작하고(저장소 읽기 → AppStarted → 신호 구독) 운전석에 앉는다. 대여가 있으면 정차 대기로 간다. */
     suspend fun startAndSit() {
         startup.start()
@@ -125,6 +139,9 @@ class AdminTestHarness(
 
         /** 업체 데이터 파일 이름. */
         const val VENDOR = "vendor_config"
+
+        /** 언어를 골라 새로 시작한 대여의 식별자. */
+        const val NEW_RENTAL_ID = "rental-new"
 
         /**
          * 지난 실행에서 저장해 둔 파일을 만든다(대여·업체 설정). 끝나면 파일을 닫는다.

@@ -11,7 +11,11 @@ import com.annyeongdrive.app.drive.FeatureFlags
 import com.annyeongdrive.app.drive.NoStopPlaces
 import com.annyeongdrive.app.drive.VehicleSnapshot
 import com.annyeongdrive.app.learning.CURRENT_CONTENT_VERSION
+import com.annyeongdrive.app.learning.LearningEntryFlow
 import com.annyeongdrive.app.learning.NO_QUIZ_YET
+import com.annyeongdrive.app.setup.DefaultRentalStarts
+import com.annyeongdrive.app.setup.RentalSetupFlow
+import com.annyeongdrive.app.setup.UuidRentalIdSource
 import com.annyeongdrive.app.storage.AppDataStores
 import com.annyeongdrive.app.storage.DriverSessionRepository
 import com.annyeongdrive.app.storage.StoredLearningStatusReader
@@ -83,4 +87,14 @@ class DriveRuntime(context: Context) {
 
     /** 업체 설정 화면의 흐름. */
     val vendorSettingsFlow = VendorSettingsFlow(adminGate, vendorConfigs, engine)
+
+    /** 대여 설정(언어 선택 → 출발 전 점검) 화면의 흐름. */
+    val rentalSetupFlow = RentalSetupFlow(
+        driverSessions,
+        engine,
+        DefaultRentalStarts(clock, UuidRentalIdSource(), CURRENT_CONTENT_VERSION),
+    )
+
+    /** 교육 시작 화면의 흐름. */
+    val learningEntryFlow = LearningEntryFlow(driverSessions, engine)
 }

@@ -3,6 +3,7 @@ package com.annyeongdrive.app.drive
 import com.annyeongdrive.app.gear.Gear
 import com.annyeongdrive.app.location.GeoPoint
 import com.annyeongdrive.app.rental.AppLanguage
+import com.annyeongdrive.app.vehicle.SeatBeltReadings
 import com.annyeongdrive.app.vehicle.SeatOccupancy
 import com.annyeongdrive.app.vehicle.UxRestriction
 
@@ -54,6 +55,15 @@ sealed interface DriveEvent {
      * @property point 현재 위치
      */
     data class LocationChanged(val point: GeoPoint) : DriveEvent
+
+    /**
+     * 좌석별 안전띠 경고 신호가 바뀌었다. 상태 전이는 만들지 않고 차량 스냅샷에 담기만 한다.
+     * 출발 전 점검 화면이 엔진의 차량 스냅샷으로 읽는다(11/13 결정: 신호 경로는 Coordinator 하나).
+     * 상태 머신: (전이 없음)
+     *
+     * @property readings 좌석별 경고 신호
+     */
+    data class SeatBeltChanged(val readings: SeatBeltReadings) : DriveEvent
 
     // ── 앱 ──
 

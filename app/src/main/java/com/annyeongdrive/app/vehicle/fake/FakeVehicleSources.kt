@@ -72,10 +72,35 @@ class FakeDriverSeatSource private constructor(
 }
 
 /**
- * 가짜 안전띠 신호. 차량 신호 확인 전이라 모든 좌석을 항상 [SeatBeltStatus.UNKNOWN]으로 알린다(결정 문서 7장).
+ * 가짜 안전띠 신호. 차량 신호 확인 전이라 처음에는 모든 좌석을 [SeatBeltStatus.UNKNOWN]으로 알린다(결정 문서 7장).
+ * 테스트와 debug 확인용 화면은 [change]로 좌석 경고를 바꾼다.
  */
-class FakeSeatBeltSource : SeatBeltSource,
-    SignalSource<Map<Seat, SeatBeltStatus>> by FakeSignal(Seat.entries.associateWith { SeatBeltStatus.UNKNOWN })
+class FakeSeatBeltSource private constructor(
+    private val signal: FakeSignal<Map<Seat, SeatBeltStatus>>,
+) : SeatBeltSource, SignalSource<Map<Seat, SeatBeltStatus>> by signal {
+
+    /** 모든 좌석이 알 수 없음인 가짜 신호를 만든다. */
+    constructor() : this(FakeSignal(ALL_UNKNOWN))
+
+    /** 마지막으로 알린 좌석별 신호. */
+    private var latest: Map<Seat, SeatBeltStatus> = ALL_UNKNOWN
+
+    /**
+     * 좌석 하나의 경고 신호를 바꾸고 구독자에게 알린다.
+     *
+     * @param seat 좌석
+     * @param status 새 경고 신호
+     */
+    fun change(seat: Seat, status: SeatBeltStatus) {
+        latest = latest + (seat to status)
+        signal.emit(latest)
+    }
+
+    private companion object {
+        /** 모든 좌석이 알 수 없음. */
+        val ALL_UNKNOWN: Map<Seat, SeatBeltStatus> = Seat.entries.associateWith { SeatBeltStatus.UNKNOWN }
+    }
+}
 
 /**
  * 가짜 유종 신호. 업체 설정 값을 그대로 돌려준다.

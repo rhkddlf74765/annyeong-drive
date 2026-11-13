@@ -30,14 +30,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.drive.DriveEvent
+import com.annyeongdrive.app.drive.state.LearningStart
 import com.annyeongdrive.app.drive.state.ParkedRest
 import com.annyeongdrive.app.drive.state.ParkedVendorSettings
 import com.annyeongdrive.app.drive.state.Returning
+import com.annyeongdrive.app.drive.state.SetupLanguage
+import com.annyeongdrive.app.drive.state.SetupPrecheck
 import com.annyeongdrive.app.service.DriveRuntime
 import com.annyeongdrive.app.service.DriveService
 import com.annyeongdrive.app.ui.admin.ReturnScreen
 import com.annyeongdrive.app.ui.admin.VendorSettingsActions
 import com.annyeongdrive.app.ui.admin.VendorSettingsView
+import com.annyeongdrive.app.setup.PrecheckView
+import com.annyeongdrive.app.ui.learning.LearningStartScreen
+import com.annyeongdrive.app.ui.setup.LanguageScreen
+import com.annyeongdrive.app.ui.setup.PrecheckActions
+import com.annyeongdrive.app.ui.setup.PrecheckScreen
 import com.annyeongdrive.app.ui.theme.Annyeong_driveTheme
 import kotlinx.coroutines.launch
 
@@ -133,6 +141,11 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     val driveState by runtime.engine.state.collectAsState()
     val returnScreen by runtime.returnFlow.screen.collectAsState()
     val vendorScreen by runtime.vendorSettingsFlow.screen.collectAsState()
+    val vehicle by runtime.engine.vehicle.collectAsState()
+    val vendorConfig by runtime.vendorConfigs.config.collectAsState()
+    val precheck by runtime.rentalSetupFlow.precheck.collectAsState()
+    val setupFlow = runtime.rentalSetupFlow
+    val learningEntry = runtime.learningEntryFlow
     val scope = rememberCoroutineScope()
     val vendorFlow = runtime.vendorSettingsFlow
 
@@ -143,6 +156,24 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     }
 
     when (driveState) {
+        SetupLanguage -> LanguageScreen(
+            onSelect = { language -> scope.launch { setupFlow.selectLanguage(language) } },
+            modifier = modifier,
+        )
+        SetupPrecheck -> PrecheckScreen(
+            view = PrecheckView.of(vehicle.seatBelts, vendorConfig),
+            progress = precheck,
+            actions = PrecheckActions(
+                onConfirmSeatBelts = setupFlow::confirmSeatBelts,
+                onComplete = { scope.launch { setupFlow.completePrecheck() } },
+            ),
+            modifier = modifier,
+        )
+        LearningStart -> LearningStartScreen(
+            onBegin = { scope.launch { learningEntry.begin() } },
+            onLater = learningEntry::later,
+            modifier = modifier,
+        )
         ParkedRest -> ParkedHome(
             onReturn = { runtime.engine.send(DriveEvent.ReturnRequested) },
             onVendorSettings = { runtime.engine.send(DriveEvent.VendorSettingsRequested) },

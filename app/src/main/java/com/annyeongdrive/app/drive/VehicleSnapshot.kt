@@ -2,6 +2,7 @@ package com.annyeongdrive.app.drive
 
 import com.annyeongdrive.app.gear.Gear
 import com.annyeongdrive.app.location.GeoPoint
+import com.annyeongdrive.app.vehicle.SeatBeltReadings
 import com.annyeongdrive.app.vehicle.UxRestriction
 
 /**
@@ -12,12 +13,14 @@ import com.annyeongdrive.app.vehicle.UxRestriction
  * @property speedKmh 현재 차속(km/h). 아직 받지 못했으면 null
  * @property ux 현재 화면 제한
  * @property location 마지막 위치. 아직 받지 못했으면 null
+ * @property seatBelts 좌석별 안전띠 경고 신호. 상태 전이에는 쓰지 않고 출발 전 점검 화면이 읽는다
  */
 data class VehicleSnapshot(
     val gear: Gear,
     val speedKmh: Float?,
     val ux: UxRestriction,
     val location: GeoPoint?,
+    val seatBelts: SeatBeltReadings = SeatBeltReadings.UNKNOWN,
 ) {
 
     /**
@@ -31,6 +34,7 @@ data class VehicleSnapshot(
         is DriveEvent.SpeedChanged -> copy(speedKmh = event.kmh)
         is DriveEvent.UxRestrictionChanged -> copy(ux = event.restriction)
         is DriveEvent.LocationChanged -> copy(location = event.point)
+        is DriveEvent.SeatBeltChanged -> copy(seatBelts = event.readings)
         else -> this
     }
 

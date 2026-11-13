@@ -287,7 +287,7 @@ private fun <T> ChoiceRow(labelId: Int, options: List<T>, selected: T, label: (T
  * @param fuel 유종
  * @return 문구 ID
  */
-private fun fuelLabel(fuel: FuelType): Int = when (fuel) {
+internal fun fuelLabel(fuel: FuelType): Int = when (fuel) {
     FuelType.GASOLINE -> R.string.fuel_gasoline
     FuelType.DIESEL -> R.string.fuel_diesel
     FuelType.LPG -> R.string.fuel_lpg

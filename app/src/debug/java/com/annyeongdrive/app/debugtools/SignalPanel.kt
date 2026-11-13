@@ -17,6 +17,8 @@ import com.annyeongdrive.app.drive.DriveEvent
 import com.annyeongdrive.app.gear.Gear
 import com.annyeongdrive.app.rental.AppLanguage
 import com.annyeongdrive.app.service.DriveRuntime
+import com.annyeongdrive.app.vehicle.Seat
+import com.annyeongdrive.app.vehicle.SeatBeltStatus
 import com.annyeongdrive.app.vehicle.UxRestriction
 
 /**
@@ -65,6 +67,13 @@ fun SignalPanel(runtime: DriveRuntime, modifier: Modifier = Modifier) {
             listOf(
                 "켜기" to { signals.ux.change(UxRestriction.RESTRICTED) },
                 "끄기" to { signals.ux.change(UxRestriction.NONE) },
+            ),
+        )
+        ButtonRow(
+            "조수석 안전띠",
+            listOf(
+                "경고" to { signals.seatBelts.change(Seat.FRONT_PASSENGER, SeatBeltStatus.WARNING) },
+                "경고 없음" to { signals.seatBelts.change(Seat.FRONT_PASSENGER, SeatBeltStatus.NO_WARNING) },
             ),
         )
         ButtonRow(

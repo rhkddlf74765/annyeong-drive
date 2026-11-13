@@ -6,21 +6,24 @@ import com.annyeongdrive.app.gear.GearSource
 import com.annyeongdrive.app.location.FakeLocationSource
 import com.annyeongdrive.app.location.LocationSource
 import com.annyeongdrive.app.vehicle.DriverSeatSource
+import com.annyeongdrive.app.vehicle.SeatBeltSource
 import com.annyeongdrive.app.vehicle.SpeedSource
 import com.annyeongdrive.app.vehicle.UxRestriction
 import com.annyeongdrive.app.vehicle.UxRestrictionSource
 import com.annyeongdrive.app.vehicle.fake.FakeDriverSeatSource
+import com.annyeongdrive.app.vehicle.fake.FakeSeatBeltSource
 import com.annyeongdrive.app.vehicle.fake.FakeSpeedSource
 import com.annyeongdrive.app.vehicle.fake.FakeUxRestrictionSource
 
 /**
- * DriveEngine이 구독하는 입력 어댑터 묶음. 다섯 신호가 엔진·조립 지점·테스트를 함께 지나가서 묶었다(코딩 규칙 5).
+ * DriveEngine이 구독하는 입력 어댑터 묶음. 여섯 신호가 엔진·조립 지점·테스트를 함께 지나가서 묶었다(코딩 규칙 5).
  *
  * @property gear 기어 신호
  * @property speed 차속 신호
  * @property ux 화면 제한 신호
  * @property driverSeat 운전석 착좌 신호
  * @property location 위치 신호
+ * @property seatBelts 좌석별 안전띠 경고 신호(출발 전 점검 화면용, 상태 전이 없음)
  */
 data class DriveSignalSources(
     val gear: GearSource,
@@ -28,6 +31,7 @@ data class DriveSignalSources(
     val ux: UxRestrictionSource,
     val driverSeat: DriverSeatSource,
     val location: LocationSource,
+    val seatBelts: SeatBeltSource,
 )
 
 /**
@@ -52,10 +56,13 @@ class FakeDriveSignals {
     /** 가짜 위치. 위치를 정하기 전에는 알리지 않는다. */
     val location = FakeLocationSource()
 
+    /** 가짜 안전띠 경고. 처음에는 모든 좌석이 알 수 없음이다. */
+    val seatBelts = FakeSeatBeltSource()
+
     /**
      * 엔진이 구독할 묶음으로 내놓는다.
      *
      * @return 가짜 신호 묶음
      */
-    fun asSources(): DriveSignalSources = DriveSignalSources(gear, speed, ux, driverSeat, location)
+    fun asSources(): DriveSignalSources = DriveSignalSources(gear, speed, ux, driverSeat, location, seatBelts)
 }
