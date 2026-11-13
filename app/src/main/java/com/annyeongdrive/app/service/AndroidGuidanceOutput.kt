@@ -16,6 +16,7 @@ import com.annyeongdrive.app.guide.GuidanceChannel
 import com.annyeongdrive.app.guide.GuidanceMessage
 import com.annyeongdrive.app.guide.GuidanceOutput
 import com.annyeongdrive.app.guide.GuidanceSentence
+import com.annyeongdrive.app.guide.voiceLocaleOf
 import com.annyeongdrive.app.speech.SpeechHub
 import java.util.Locale
 
@@ -46,14 +47,14 @@ class AndroidGuidanceOutput(context: Context) : GuidanceOutput {
     }
 
     /**
-     * 안내 언어의 Locale을 고른다. 대여가 없으면 기기 기본 Locale이다.
+     * 안내 언어의 Locale을 고른다. 나라까지 붙인 값이다([voiceLocaleOf]). 대여가 없으면 기기 기본 Locale이다.
      *
      * @param message 안내
      * @return 문장을 읽고 말할 Locale
      */
     private fun localeOf(message: GuidanceMessage): Locale {
         val language = message.language ?: return Locale.getDefault()
-        return Locale.forLanguageTag(language.tag)
+        return voiceLocaleOf(language)
     }
 
     /**
