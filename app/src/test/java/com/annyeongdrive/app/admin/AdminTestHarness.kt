@@ -29,6 +29,7 @@ import com.annyeongdrive.app.storage.VendorConfigRepository
 import com.annyeongdrive.app.time.Clock
 import com.annyeongdrive.app.vendor.ReturnTerms
 import com.annyeongdrive.app.vendor.SaltSource
+import com.annyeongdrive.app.zones.ParkingWarningFlow
 import com.annyeongdrive.app.zones.ZoneData
 import com.annyeongdrive.app.zones.ZoneRoadRuleWatcher
 import com.annyeongdrive.app.zones.ZoneStopPlaces
@@ -143,6 +144,9 @@ class AdminTestHarness(
 
     /** 이어서 확인할까요 흐름. */
     val resumeOffer = ResumeOfferFlow(driverSessions, engine)
+
+    /** 주정차 경고 확인 흐름. */
+    val parkingWarning = ParkingWarningFlow(engine)
 
     /** 앱을 시작하고(저장소 읽기 → AppStarted → 신호 구독) 운전석에 앉는다. 대여가 있으면 정차 대기로 간다. */
     suspend fun startAndSit() {

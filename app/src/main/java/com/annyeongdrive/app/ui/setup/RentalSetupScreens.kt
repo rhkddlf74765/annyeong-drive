@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -16,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.annyeongdrive.app.R
@@ -90,6 +92,7 @@ fun PrecheckScreen(
 
 /**
  * 안전띠 항목. 경고가 있는 좌석만 더 짚는다. 경고가 없다고 "모두 착용"을 보여 주지 않는다.
+ * 확인 체크는 체크 상자와 문구를 한 줄로 묶어, 문구를 눌러도 바뀐다.
  *
  * @param warningSeats 경고가 있는 좌석
  * @param progress 화면 안쪽 상태
@@ -104,8 +107,15 @@ private fun SeatBeltSection(warningSeats: List<Seat>, progress: PrecheckProgress
             val seats = warningSeats.map { stringResource(seatLabel(it)) }.joinToString(", ")
             Text(stringResource(R.string.precheck_seatbelt_warning, seats), color = MaterialTheme.colorScheme.error)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = progress.seatBeltConfirmed, onCheckedChange = onConfirm)
+        Row(
+            modifier = Modifier.toggleable(
+                value = progress.seatBeltConfirmed,
+                role = Role.Checkbox,
+                onValueChange = onConfirm,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = progress.seatBeltConfirmed, onCheckedChange = null)
             Text(stringResource(R.string.precheck_seatbelt_confirm))
         }
         if (progress.needsSeatBeltConfirmation) {

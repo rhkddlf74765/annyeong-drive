@@ -1,12 +1,19 @@
 <resources>
     <string name="app_name">Annyeong_drive</string>
-    <!-- 3단계 임시 홈 화면. 5단계에서 언어 선택·정차 화면으로 바뀐다. -->
+    <!-- 잠깐 거치는 상태(정차 맥락 판단·초기화)와 아직 화면이 없는 상태(P1 도움 카드·오주유 뼈대) -->
     <string name="home_preparing">새 화면을 준비하고 있어요.</string>
     <!-- 주행 안내 서비스의 상주 알림 -->
     <string name="drive_service_channel">주행 안내</string>
     <string name="drive_service_running">주행 안내가 켜져 있어요.</string>
     <!-- 위치 권한이 없어 주행 안내를 시작하지 못할 때 -->
     <string name="home_location_needed">위치 권한을 허용하면 주행 안내를 시작해요.</string>
+    <!-- 대기(착좌 전·반납 뒤) -->
+    <string name="home_idle">운전석에 앉으면 대여 안내를 시작해요.</string>
+    <!-- 주행 중 화면 -->
+    <string name="driving_home_title">주행 중이에요.</string>
+    <string name="driving_home_body">주행 중에는 음성과 알림으로 안내해요. 교육은 정차한 뒤 이어서 볼 수 있어요.</string>
+    <!-- 주정차 경고 화면 -->
+    <string name="parking_warning_acknowledge">확인했어요</string>
 
     <!-- 정차 대기(임시 홈). 5단계에서 실제 화면으로 바뀐다. -->
     <string name="parked_home_title">정차 중이에요.</string>

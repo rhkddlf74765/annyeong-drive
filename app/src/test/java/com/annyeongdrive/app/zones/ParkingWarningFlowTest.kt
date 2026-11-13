@@ -4,6 +4,7 @@ import com.annyeongdrive.app.admin.AdminTestHarness
 import com.annyeongdrive.app.drive.DriveEvent
 import com.annyeongdrive.app.drive.state.DrivingCruising
 import com.annyeongdrive.app.drive.state.ParkedNoParkingWarning
+import com.annyeongdrive.app.drive.state.ParkedRest
 import com.annyeongdrive.app.drive.state.ParkedResumeOffer
 import com.annyeongdrive.app.gear.Gear
 import com.annyeongdrive.app.learning.CORE_CATALOG
@@ -22,8 +23,9 @@ import org.junit.Test
 /**
  * 주정차 경고: P로 바꾼 순간 100m 안에 검수된 주정차 단속 구역(카메라)이 있으면 확인을 요청하는 경고를 내고,
  * 미완료 교육 이어 보기보다 먼저다. 멀리 떨어졌거나, D로 신호 대기 중이거나, 앱을 켤 때 이미 P였으면 경고하지 않는다.
+ * 경고 화면에서 "확인했어요"를 누르면 정차 대기로 간다(경고 화면이 아닐 때 누른 것은 무시).
  * 실제 DataStore 파일·엔진·Coordinator·구역 조회를 연결해 확인한다(시연 경로의 카메라 좌표).
- * 근거: 기능 보드 "주정차 경고" 1·4·5·7번, 결정 문서 3장(정차 순간 우선순위), docs/state-machine.md T11·T13·T15, implementation-plan 8단계.
+ * 근거: 기능 보드 "주정차 경고" 1·4·5·7번, 결정 문서 3장(정차 순간 우선순위), docs/state-machine.md T11·T13·T15·T17, implementation-plan 8·9단계.
  */
 class ParkingWarningFlowTest {
 
@@ -146,5 +148,34 @@ class ParkingWarningFlowTest {
         // 결과
         assertSame(ParkedResumeOffer, app.engine.state.value)
         assertTrue(app.ports.parkingWarnings.isEmpty())
+    }
+
+    /** 경고 화면에서 확인을 누르면 정차 대기로 간다. */
+    @Test
+    fun `경고를 확인하면 정차 대기로 간다`() = runBlocking {
+        // 상황
+        val app = driving()
+        stopAt(app, nearCamera)
+
+        // 행동
+        app.parkingWarning.acknowledge()
+
+        // 결과
+        assertSame(ParkedRest, app.engine.state.value)
+    }
+
+    /** 주행 중에 늦게 눌린 확인은 상태를 바꾸지 않는다. */
+    @Test
+    fun `경고 화면이 아닐 때 누른 확인은 무시한다`() = runBlocking {
+        // 상황
+        val app = driving()
+        stopAt(app, nearCamera)
+        app.signals.gear.shift(Gear.D)
+
+        // 행동
+        app.parkingWarning.acknowledge()
+
+        // 결과
+        assertSame(DrivingCruising, app.engine.state.value)
     }
 }

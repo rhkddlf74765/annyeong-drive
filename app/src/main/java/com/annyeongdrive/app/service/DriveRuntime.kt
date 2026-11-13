@@ -28,6 +28,7 @@ import com.annyeongdrive.app.storage.StoredRentalStatusReader
 import com.annyeongdrive.app.storage.VendorConfigRepository
 import com.annyeongdrive.app.time.DeviceClock
 import com.annyeongdrive.app.vendor.SecureRandomSaltSource
+import com.annyeongdrive.app.zones.ParkingWarningFlow
 import com.annyeongdrive.app.zones.ZoneLoader
 import com.annyeongdrive.app.zones.ZoneRoadRuleWatcher
 import com.annyeongdrive.app.zones.ZoneStopPlaces
@@ -128,4 +129,7 @@ class DriveRuntime(context: Context) {
 
     /** 이어서 확인할까요 화면의 흐름. */
     val resumeOfferFlow = ResumeOfferFlow(driverSessions, engine)
+
+    /** 주정차 경고 화면의 흐름. */
+    val parkingWarningFlow = ParkingWarningFlow(engine)
 }

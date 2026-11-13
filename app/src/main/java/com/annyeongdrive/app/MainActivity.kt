@@ -24,8 +24,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.drive.DriveEvent
+import com.annyeongdrive.app.drive.state.Driving
+import com.annyeongdrive.app.drive.state.Idle
 import com.annyeongdrive.app.drive.state.Learning
 import com.annyeongdrive.app.drive.state.LearningStart
+import com.annyeongdrive.app.drive.state.ParkedNoParkingWarning
 import com.annyeongdrive.app.drive.state.ParkedResumeOffer
 import com.annyeongdrive.app.drive.state.ParkedRest
 import com.annyeongdrive.app.drive.state.ParkedVendorSettings
@@ -38,6 +41,8 @@ import com.annyeongdrive.app.ui.admin.ReturnScreen
 import com.annyeongdrive.app.ui.admin.VendorSettingsActions
 import com.annyeongdrive.app.ui.admin.VendorSettingsView
 import com.annyeongdrive.app.setup.PrecheckView
+import com.annyeongdrive.app.ui.home.DrivingHome
+import com.annyeongdrive.app.ui.home.ParkingWarningScreen
 import com.annyeongdrive.app.ui.learning.LearningActions
 import com.annyeongdrive.app.ui.learning.LearningScreen
 import com.annyeongdrive.app.ui.learning.LearningStartScreen
@@ -54,13 +59,14 @@ import kotlinx.coroutines.launch
 /**
  * 앱의 첫 화면. 위치·알림 권한을 받은 뒤 주행 안내 서비스(DriveService)를 시작하고,
  * Coordinator의 현재 운전 상태(engine.state)만 보고 화면을 고른다. 기어·차속을 직접 보지 않는다.
- * 대여 설정·교육·이어 보기 제안·정차 대기·반납 처리·업체 설정 화면이 있고, 주행 중 화면은 8단계에서 붙인다.
+ * 대기·대여 설정·교육·이어 보기 제안·정차 대기·주정차 경고·반납 처리·업체 설정·주행 중 화면이 있다.
+ * 화면은 하나만 둔다(launchMode singleTask). 아이콘이나 알림을 다시 눌러도 새로 쌓이지 않는다.
  * 기능 확인용 화면은 debug 빌드의 CheckActivity에 있다.
  */
 class MainActivity : ComponentActivity() {
 
-    /** 권한 안내 문구 ID. 권한 결과에 따라 바뀐다. */
-    private val messageId = mutableIntStateOf(R.string.home_preparing)
+    /** 대기 화면 문구 ID. 위치 권한이 없으면 권한 안내로 바뀐다. */
+    private val messageId = mutableIntStateOf(R.string.home_idle)
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { startServiceIfAllowed() }
@@ -95,7 +101,7 @@ class MainActivity : ComponentActivity() {
             messageId.intValue = R.string.home_location_needed
             return
         }
-        messageId.intValue = R.string.home_preparing
+        messageId.intValue = R.string.home_idle
         DriveService.start(this)
     }
 
@@ -135,7 +141,7 @@ class MainActivity : ComponentActivity() {
  * 운전 상태에 맞는 화면을 고른다. 상태가 바뀌면 반납·업체 설정 흐름에 알려 첫 단계를 정하거나 닫게 한다.
  *
  * @param runtime 앱 전체에서 하나인 조립 지점
- * @param messageId 그 밖의 상태에서 보여 줄 문구 ID
+ * @param messageId 대기 상태에서 보여 줄 문구 ID(위치 권한이 없으면 권한 안내)
  * @param modifier 바깥에서 주는 배치 설정
  */
 @Composable
@@ -153,6 +159,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     val resumeOffer = runtime.resumeOfferFlow
     val scope = rememberCoroutineScope()
     val vendorFlow = runtime.vendorSettingsFlow
+    val parkingWarning = runtime.parkingWarningFlow
 
     LaunchedEffect(driveState) {
         vendorFlow.syncWithDrive()
@@ -162,6 +169,9 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     }
 
     when (driveState) {
+        Idle -> HomeMessage(messageId, modifier)
+        is Driving -> DrivingHome(modifier)
+        ParkedNoParkingWarning -> ParkingWarningScreen(onAcknowledge = parkingWarning::acknowledge, modifier = modifier)
         SetupLanguage -> LanguageScreen(
             onSelect = { language -> scope.launch { setupFlow.selectLanguage(language) } },
             modifier = modifier,
@@ -235,7 +245,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
-        else -> HomeMessage(messageId, modifier)
+        else -> HomeMessage(R.string.home_preparing, modifier)
     }
 }
 
