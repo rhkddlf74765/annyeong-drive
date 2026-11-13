@@ -66,4 +66,7 @@ class DriveRuntime(context: Context) {
             ),
         ),
     )
+
+    /** 앱 시작 순서(저장소 읽기 → AppStarted → 신호 구독). 서비스가 시작·멈춤을 맡는다. */
+    val startup = DriveStartup(driverSessions, vendorConfigs, engine)
 }

@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.annyeongdrive.app.AnnyeongApplication
 import com.annyeongdrive.app.R
+import kotlinx.coroutines.launch
 
 /**
  * 앱이 화면에 없어도 운전 판단을 계속하는 Foreground Service(location 타입).
@@ -19,7 +20,10 @@ import com.annyeongdrive.app.R
  */
 class DriveService : Service() {
 
-    /** 서비스를 앞으로 올리고 엔진을 시작한다. 위치 권한이 없으면 시작하지 않고 멈춘다. */
+    /**
+     * 서비스를 앞으로 올리고 앱 시작 순서(저장소 읽기 → AppStarted → 신호 구독)를 진행한다.
+     * 위치 권한이 없으면 시작하지 않고 멈춘다.
+     */
     override fun onCreate() {
         super.onCreate()
         createChannel()
@@ -28,7 +32,8 @@ class DriveService : Service() {
             stopSelf()
             return
         }
-        runtime().engine.start()
+        val runtime = runtime()
+        runtime.scope.launch { runtime.startup.start() }
     }
 
     /**
@@ -41,9 +46,9 @@ class DriveService : Service() {
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
-    /** 엔진을 멈춘다. */
+    /** 신호 구독을 멈춘다. 저장소 내용과 운전 상태는 프로세스가 살아 있는 동안 남는다. */
     override fun onDestroy() {
-        runtime().engine.stop()
+        runtime().startup.stop()
         super.onDestroy()
     }
 
