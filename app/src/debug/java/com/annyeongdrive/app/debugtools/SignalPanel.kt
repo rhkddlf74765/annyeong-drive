@@ -83,6 +83,8 @@ fun SignalPanel(runtime: DriveRuntime, modifier: Modifier = Modifier) {
                 "교육 열기 T21" to { send(DriveEvent.LearningOpenRequested) },
                 "도움 메뉴 T22" to { send(DriveEvent.HelpRequested) },
                 "도움 닫기 B5" to { send(DriveEvent.HelpClosed) },
+                "업체 설정 B9" to { send(DriveEvent.VendorSettingsRequested) },
+                "업체 설정 닫기 B10" to { send(DriveEvent.VendorSettingsClosed) },
             ),
         )
         ButtonRow(

@@ -36,9 +36,10 @@ class VendorConfigRepositoryTest {
         // 상황
         val repository = openRepository()
         // 행동
-        val loaded = repository.load()
+        val result = repository.load()
         // 결과
-        assertEquals(VendorConfig.initial(), loaded)
+        assertEquals(VendorLoadState.NOT_SAVED, result)
+        assertEquals(VendorConfig.initial(), repository.config.value)
     }
 
     /** 정한 관리자 코드가 앱을 다시 켜도 남아 있는지 확인한다. */
@@ -48,7 +49,9 @@ class VendorConfigRepositoryTest {
         openRepository().update { it.setInitialAdminCode(ADMIN_CODE, SALT) }
         stores.close()
         // 행동
-        val loaded = openRepository().load()
+        val reopened = openRepository()
+        reopened.load()
+        val loaded = reopened.config.value
         // 결과
         assertTrue(loaded.hasAdminCode())
         assertEquals(AdminCodeCheck.Verified, loaded.verifyAdminCode(ADMIN_CODE, NOW).check)
@@ -63,7 +66,9 @@ class VendorConfigRepositoryTest {
         repeat(5) { repository.update { config -> config.verifyAdminCode("Wrong123", NOW).config } }
         stores.close()
         // 행동
-        val loaded = openRepository().load()
+        val reopened = openRepository()
+        reopened.load()
+        val loaded = reopened.config.value
         // 결과
         assertEquals(AdminCodeCheck.Locked(NOW.plusSeconds(30)), loaded.verifyAdminCode(ADMIN_CODE, NOW.plusSeconds(1)).check)
     }

@@ -7,4 +7,55 @@
     <string name="drive_service_running">주행 안내가 켜져 있어요.</string>
     <!-- 위치 권한이 없어 주행 안내를 시작하지 못할 때 -->
     <string name="home_location_needed">위치 권한을 허용하면 주행 안내를 시작해요.</string>
+
+    <!-- 정차 대기(임시 홈). 5단계에서 실제 화면으로 바뀐다. -->
+    <string name="parked_home_title">정차 중이에요.</string>
+    <string name="action_return">반납 완료</string>
+    <string name="action_vendor_settings">업체 설정</string>
+
+    <!-- 공통 버튼 -->
+    <string name="action_confirm">확인</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_close">닫기</string>
+    <string name="action_save">저장</string>
+
+    <!-- 관리자 코드 -->
+    <string name="admin_code_label">관리자 코드 (영문·숫자 8자리)</string>
+    <string name="current_code_label">지금 관리자 코드</string>
+    <string name="new_code_label">새 관리자 코드 (영문·숫자 8자리)</string>
+    <string name="confirm_code_label">새 관리자 코드 다시 입력</string>
+    <string name="code_wrong">코드가 맞지 않아요. 남은 시도는 %1$d번이에요.</string>
+    <string name="code_locked">시도가 많아 잠시 잠겼어요. %1$s 이후에 다시 시도해 주세요.</string>
+    <string name="code_invalid">영문과 숫자로 된 8자리를 입력해 주세요.</string>
+    <string name="code_mismatch">두 번 입력한 코드가 달라요.</string>
+    <string name="code_changed">관리자 코드를 바꿨어요.</string>
+    <string name="config_unreadable">업체 설정을 읽지 못했어요. 대여 업체에 문의해 주세요.</string>
+
+    <!-- 반납 처리 -->
+    <string name="return_title">반납 처리</string>
+    <string name="return_entry">업체 직원이 관리자 코드를 입력해 주세요.</string>
+    <string name="return_code_not_set">업체 설정에서 관리자 코드를 먼저 정해 주세요. 지금은 반납을 진행할 수 없어요.</string>
+
+    <!-- 업체 설정 -->
+    <string name="vendor_title">업체 설정</string>
+    <string name="vendor_first_code">처음 사용하는 기기예요. 관리자 코드를 정해 주세요.</string>
+    <string name="vendor_fuel">유종</string>
+    <string name="fuel_gasoline">휘발유</string>
+    <string name="fuel_diesel">경유</string>
+    <string name="fuel_lpg">LPG</string>
+    <string name="fuel_electric">전기</string>
+    <string name="not_decided">정하지 않음</string>
+    <string name="vendor_hipass">하이패스 이용</string>
+    <string name="hipass_available">이용 가능</string>
+    <string name="hipass_not_available">이용 불가</string>
+    <string name="vendor_hipass_settlement">하이패스 통행료 정산 방식</string>
+    <string name="vendor_return_place">반납 장소</string>
+    <string name="vendor_due_at">반납 예정 시각 (예: 2026-11-14 18:00)</string>
+    <string name="vendor_energy_rule">연료·배터리 기준</string>
+    <string name="vendor_contact">업체 연락처</string>
+    <string name="vendor_reset_grace">예비 초기화 시간 N (시간)</string>
+    <string name="due_at_invalid">반납 예정 시각을 2026-11-14 18:00 형식으로 입력해 주세요.</string>
+    <string name="grace_invalid">예비 초기화 시간은 1 이상의 숫자로 입력해 주세요.</string>
+    <string name="vendor_unsaved">저장하지 않은 변경이 있어요. 닫거나 출발하면 사라져요.</string>
+    <string name="vendor_change_code">관리자 코드 바꾸기</string>
 </resources>

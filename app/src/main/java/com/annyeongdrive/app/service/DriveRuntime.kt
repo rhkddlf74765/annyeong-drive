@@ -1,6 +1,9 @@
 package com.annyeongdrive.app.service
 
 import android.content.Context
+import com.annyeongdrive.app.admin.AdminCodeGate
+import com.annyeongdrive.app.admin.ReturnCodeFlow
+import com.annyeongdrive.app.admin.VendorSettingsFlow
 import com.annyeongdrive.app.drive.AlwaysPassReturnGate
 import com.annyeongdrive.app.drive.DriveContext
 import com.annyeongdrive.app.drive.DriveCoordinator
@@ -15,6 +18,7 @@ import com.annyeongdrive.app.storage.StoredLearningStatusReader
 import com.annyeongdrive.app.storage.StoredRentalStatusReader
 import com.annyeongdrive.app.storage.VendorConfigRepository
 import com.annyeongdrive.app.time.DeviceClock
+import com.annyeongdrive.app.vendor.SecureRandomSaltSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,6 +32,7 @@ import kotlinx.coroutines.SupervisorJob
 class DriveRuntime(context: Context) {
 
     private val appContext = context.applicationContext
+    private val clock = DeviceClock()
 
     /** 앱이 살아 있는 동안의 작업 범위. 저장 파일 쓰기 등을 이어 간다. */
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -45,7 +50,7 @@ class DriveRuntime(context: Context) {
     val coordinator = DriveCoordinator(
         DriveContext(
             vehicle = VehicleSnapshot.UNKNOWN,
-            rental = StoredRentalStatusReader(driverSessions.session, vendorConfigs.config, DeviceClock()),
+            rental = StoredRentalStatusReader(driverSessions.session, vendorConfigs.config, clock),
             learning = StoredLearningStatusReader(driverSessions.session, NO_QUIZ_YET),
             stopPlaces = NoStopPlaces(),
             flags = FeatureFlags(),
@@ -69,4 +74,13 @@ class DriveRuntime(context: Context) {
 
     /** 앱 시작 순서(저장소 읽기 → AppStarted → 신호 구독). 서비스가 시작·멈춤을 맡는다. */
     val startup = DriveStartup(driverSessions, vendorConfigs, engine)
+
+    /** 관리자 코드 확인·설정·변경 창구. 반납과 업체 설정이 함께 쓴다. */
+    val adminGate = AdminCodeGate(vendorConfigs, clock, SecureRandomSaltSource())
+
+    /** 반납 처리 화면의 흐름. */
+    val returnFlow = ReturnCodeFlow(adminGate, engine)
+
+    /** 업체 설정 화면의 흐름. */
+    val vendorSettingsFlow = VendorSettingsFlow(adminGate, vendorConfigs, engine)
 }

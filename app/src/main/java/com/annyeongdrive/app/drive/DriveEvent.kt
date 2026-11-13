@@ -117,6 +117,18 @@ sealed interface DriveEvent {
      */
     data object HelpClosed : DriveEvent
 
+    /**
+     * 정차 대기 화면의 "업체 설정" 버튼을 눌렀다. 코드 입력은 업체 설정 화면 안에서 한다.
+     * 상태 머신: B9
+     */
+    data object VendorSettingsRequested : DriveEvent
+
+    /**
+     * 업체 설정 화면을 닫았다. 저장하지 않은 변경은 버린다.
+     * 상태 머신: B10
+     */
+    data object VendorSettingsClosed : DriveEvent
+
     // ── 사용자 동작: 교육·퀴즈 ──
 
     /**

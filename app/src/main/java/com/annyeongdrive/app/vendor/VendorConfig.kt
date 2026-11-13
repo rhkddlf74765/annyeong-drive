@@ -52,6 +52,43 @@ data class ReturnTerms(
 )
 
 /**
+ * 관리자 코드 변경 요청.
+ *
+ * @property currentCode 지금 코드(확인용)
+ * @property newCode 새 코드(영문·숫자 8자리)
+ */
+data class AdminCodeChangeRequest(val currentCode: String, val newCode: String)
+
+/** 관리자 코드 변경 결과. 어느 경우든 그 뒤의 업체 설정을 함께 돌려주어 실패 횟수·잠금을 저장할 수 있게 한다. */
+sealed interface AdminCodeChange {
+
+    /** 바뀐 뒤의 업체 설정. */
+    val config: VendorConfig
+
+    /**
+     * 코드를 바꿨다.
+     *
+     * @property config 새 코드가 들어간 업체 설정
+     */
+    data class Changed(override val config: VendorConfig) : AdminCodeChange
+
+    /**
+     * 지금 코드 확인에 실패해 바꾸지 않았다(틀림·잠김·코드 미설정).
+     *
+     * @property check 지금 코드 확인 결과
+     * @property config 실패 횟수·잠금이 반영된 업체 설정
+     */
+    data class Refused(val check: AdminCodeCheck, override val config: VendorConfig) : AdminCodeChange
+
+    /**
+     * 새 코드 형식이 틀려 바꾸지 않았다. 지금 코드는 확인하지 않아 실패 횟수도 늘지 않는다.
+     *
+     * @property config 그대로인 업체 설정
+     */
+    data class InvalidNewCode(override val config: VendorConfig) : AdminCodeChange
+}
+
+/**
  * 업체 쪽 관리자 코드 확인 결과와 그 뒤의 업체 설정.
  *
  * @property check 확인 결과
@@ -116,6 +153,25 @@ data class VendorConfig private constructor(
         val current = credential ?: return VendorVerification(AdminCodeCheck.NotSet, this)
         val verification = current.verify(input, now, lockPolicy)
         return VendorVerification(verification.check, copy(credential = verification.credential))
+    }
+
+    /**
+     * 지금 코드를 확인한 뒤 새 코드로 바꾼다. 지금 코드 확인은 반납·진입과 같은 실패 횟수·잠금 규칙을 따른다.
+     * 새 코드 형식이 틀리면 지금 코드를 확인하지 않고 거절한다.
+     *
+     * @param request 지금 코드와 새 코드
+     * @param now 지금 시각
+     * @param salt 새 코드에 쓸 기기별 무작위 salt
+     * @return 변경 결과와 바뀐 업체 설정
+     */
+    fun changeAdminCode(request: AdminCodeChangeRequest, now: Instant, salt: ByteArray): AdminCodeChange {
+        if (!AdminCredential.isValidFormat(request.newCode)) return AdminCodeChange.InvalidNewCode(this)
+        val verification = verifyAdminCode(request.currentCode, now)
+        if (verification.check != AdminCodeCheck.Verified) {
+            return AdminCodeChange.Refused(verification.check, verification.config)
+        }
+        val changed = verification.config.copy(credential = AdminCredential.create(request.newCode, salt))
+        return AdminCodeChange.Changed(changed)
     }
 
     /**

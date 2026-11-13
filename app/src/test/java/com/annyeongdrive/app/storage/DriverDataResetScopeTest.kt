@@ -36,7 +36,9 @@ class DriverDataResetScopeTest {
         stores.close()
         // 결과
         assertNull(DriverSessionRepository(stores.open("driver_session"), CONTENT_VERSION).load())
-        val reloadedVendor = VendorConfigRepository(stores.open("vendor_config")).load()
+        val reopenedVendor = VendorConfigRepository(stores.open("vendor_config"))
+        reopenedVendor.load()
+        val reloadedVendor = reopenedVendor.config.value
         assertEquals(savedVendor, reloadedVendor)
         assertTrue(reloadedVendor.hasAdminCode())
     }

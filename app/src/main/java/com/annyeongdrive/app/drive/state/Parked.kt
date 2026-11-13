@@ -149,13 +149,13 @@ data object ParkedResumeOffer : Parked {
 
 /**
  * 정차 — 정차 대기.
- * 상태 머신: 들어옴 T16·T17·T18·T20·T23·B3·B5·B7, 나감 T21·T22
+ * 상태 머신: 들어옴 T16·T17·T18·T20·T23·B3·B5·B7·B10, 나감 T21·T22·B9
  */
 data object ParkedRest : Parked {
 
     /**
-     * 교육·퀴즈를 열면 교육 시작부터, 도움 메뉴를 고르면 도움 카드로 간다.
-     * 상태 머신: T21(→ T24), T22 (부모 규칙 T9·T31 먼저)
+     * 교육·퀴즈를 열면 교육 시작부터, 도움 메뉴를 고르면 도움 카드로, 업체 설정을 누르면 업체 설정으로 간다.
+     * 상태 머신: T21(→ T24), T22, B9 (부모 규칙 T9·T31 먼저)
      *
      * @param event 받은 이벤트
      * @param context 판단 정보
@@ -165,6 +165,30 @@ data object ParkedRest : Parked {
         handleInParked(event, context) ?: when (event) {
             DriveEvent.LearningOpenRequested -> openLearning(context) // T21
             DriveEvent.HelpRequested -> Transition(ParkedHelp) // T22
+            DriveEvent.VendorSettingsRequested -> Transition(ParkedVendorSettings) // B9
+            else -> null
+        }
+}
+
+/**
+ * 정차 — 업체 설정. 코드 입력·처음 코드 정하기·편집·코드 변경 같은 화면 안쪽 단계는
+ * 운전 판단과 무관하므로 상태 머신이 아니라 업체 설정 흐름 객체(VendorSettingsFlow)가 맡는다.
+ * 출발하면 정차 공통 규칙(T9)으로 닫히고, 저장하지 않은 변경은 버린다.
+ * 상태 머신: 들어옴 B9, 나감 B10·T9
+ */
+data object ParkedVendorSettings : Parked {
+
+    /**
+     * 업체 설정을 닫으면 정차 대기로 간다.
+     * 상태 머신: B10 (부모 규칙 T9·T31 먼저)
+     *
+     * @param event 받은 이벤트
+     * @param context 판단 정보
+     * @return 전이. 처리하지 않는 이벤트면 null
+     */
+    override fun handle(event: DriveEvent, context: DriveContext): Transition? =
+        handleInParked(event, context) ?: when (event) {
+            DriveEvent.VendorSettingsClosed -> Transition(ParkedRest) // B10
             else -> null
         }
 }

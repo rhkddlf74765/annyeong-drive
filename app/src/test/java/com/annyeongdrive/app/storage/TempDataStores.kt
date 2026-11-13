@@ -1,10 +1,12 @@
 package com.annyeongdrive.app.storage
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.core.okio.OkioStorage
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferencesSerializer
+import androidx.datastore.preferences.core.emptyPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,16 +32,28 @@ class TempDataStores {
      * 이름에 해당하는 파일의 DataStore를 연다.
      *
      * @param name 파일 이름(예: driver_session)
+     * @param replaceCorrupt 파일이 깨졌을 때 빈 내용으로 바꿀지. 앱의 driver_session과 같게 하려면 true
      * @return 열린 DataStore
      */
-    fun open(name: String): DataStore<Preferences> {
+    fun open(name: String, replaceCorrupt: Boolean = false): DataStore<Preferences> {
         val job = SupervisorJob()
         jobs += job
-        val storage = OkioStorage(FileSystem.SYSTEM, PreferencesSerializer) {
-            File(dir, "$name.preferences_pb").toOkioPath()
+        val storage = OkioStorage(FileSystem.SYSTEM, PreferencesSerializer) { fileOf(name).toOkioPath() }
+        val scope = CoroutineScope(Dispatchers.IO + job)
+        if (replaceCorrupt) {
+            val handler = ReplaceFileCorruptionHandler { emptyPreferences() }
+            return PreferenceDataStoreFactory.create(storage = storage, corruptionHandler = handler, scope = scope)
         }
-        return PreferenceDataStoreFactory.create(storage = storage, scope = CoroutineScope(Dispatchers.IO + job))
+        return PreferenceDataStoreFactory.create(storage = storage, scope = scope)
     }
+
+    /**
+     * 이름에 해당하는 저장 파일. 파일이 깨진 상황을 만들 때 직접 쓴다.
+     *
+     * @param name 파일 이름(예: vendor_config)
+     * @return 저장 파일
+     */
+    fun fileOf(name: String): File = File(dir, "$name.preferences_pb")
 
     /** 열린 DataStore를 모두 닫는다. 앱이 꺼진 것과 같다. */
     fun close() = runBlocking {
