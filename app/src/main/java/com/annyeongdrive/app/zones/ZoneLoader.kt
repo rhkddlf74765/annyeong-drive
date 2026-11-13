@@ -19,7 +19,7 @@ object ZoneLoader {
                     lat = it.getDouble("lat"),
                     lon = it.getDouble("lon"),
                     radiusM = it.optDouble("radiusM", 300.0),
-                    speedLimitKmh = it.optInt("speedLimitKmh", 30),
+                    speedLimitKmh = it.optInt("speedLimitKmh", 0).takeIf { limit -> limit > 0 },
                 )
             },
             speedCameras = root.getJSONArray("speedCameras").map {

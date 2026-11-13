@@ -1,5 +1,7 @@
 package com.annyeongdrive.app.service
 
+import com.annyeongdrive.app.guide.RoadRuleReminder
+
 /** 출력 창구가 몇 번, 무엇으로 불렸는지 기록하는 테스트용 가짜 묶음. */
 class RecordingPorts {
 
@@ -20,6 +22,13 @@ class RecordingPorts {
 
     /** 오주유 안내 횟수. */
     var fuelChecks = 0
+        private set
+
+    /** 주행 중 규칙 안내에 넘어온 규칙. */
+    val roadRules = mutableListOf<RoadRuleReminder>()
+
+    /** "처음 만남" 횟수를 지운 횟수. */
+    var encountersForgotten = 0
         private set
 
     /**
@@ -45,6 +54,20 @@ class RecordingPorts {
             override fun announceFuelCheck() {
                 fuelChecks += 1
             }
+
+            /**
+             * 주행 중 규칙 안내를 기록한다.
+             *
+             * @param reminder 알려 줄 규칙
+             */
+            override fun remindRoadRule(reminder: RoadRuleReminder) {
+                roadRules += reminder
+            }
+
+            /** "처음 만남" 횟수 지우기를 센다. */
+            override fun forgetEncounters() {
+                encountersForgotten += 1
+            }
         },
     )
 
@@ -54,5 +77,6 @@ class RecordingPorts {
      * @return 아무것도 불리지 않았으면 true
      */
     fun nothingCalled(): Boolean =
-        screenClosed == 0 && speechStopped == 0 && driverDataErased == 0 && parkingWarnings.isEmpty() && fuelChecks == 0
+        screenClosed == 0 && speechStopped == 0 && driverDataErased == 0 && parkingWarnings.isEmpty() && fuelChecks == 0 &&
+            roadRules.isEmpty()
 }

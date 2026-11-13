@@ -4,7 +4,6 @@ import com.annyeongdrive.app.drive.AlwaysPassReturnGate
 import com.annyeongdrive.app.drive.DriveContext
 import com.annyeongdrive.app.drive.DriveCoordinator
 import com.annyeongdrive.app.drive.FeatureFlags
-import com.annyeongdrive.app.drive.NoStopPlaces
 import com.annyeongdrive.app.drive.VehicleSnapshot
 import com.annyeongdrive.app.learning.LearningEntryFlow
 import com.annyeongdrive.app.learning.LearningCatalog
@@ -30,6 +29,9 @@ import com.annyeongdrive.app.storage.VendorConfigRepository
 import com.annyeongdrive.app.time.Clock
 import com.annyeongdrive.app.vendor.ReturnTerms
 import com.annyeongdrive.app.vendor.SaltSource
+import com.annyeongdrive.app.zones.ZoneData
+import com.annyeongdrive.app.zones.ZoneRoadRuleWatcher
+import com.annyeongdrive.app.zones.ZoneStopPlaces
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -65,12 +67,14 @@ class MutableClock(var now: Instant) : Clock {
  * @param writeScope 운전자 데이터 지우기처럼 이어서 끝나는 파일 쓰기의 범위
  * @param clock 시계
  * @param catalog 교육 콘텐츠
+ * @param zones 구역 데이터(주정차 경고·주행 중 규칙 안내). 기본은 비어 있다
  */
 class AdminTestHarness(
     stores: TempDataStores,
     private val writeScope: CoroutineScope,
     val clock: MutableClock = MutableClock(StorageFixtures.NOW),
     catalog: LearningCatalog = EMPTY_CATALOG,
+    zones: ZoneData = NO_ZONES,
 ) {
 
     /** 운전자 데이터 저장소. */
@@ -95,9 +99,10 @@ class AdminTestHarness(
                 vehicle = VehicleSnapshot.UNKNOWN,
                 rental = StoredRentalStatusReader(driverSessions.session, vendorConfigs.config, clock),
                 learning = StoredLearningStatusReader(driverSessions.session, plans),
-                stopPlaces = NoStopPlaces(),
+                stopPlaces = ZoneStopPlaces(zones),
                 flags = FeatureFlags(),
                 returnGate = AlwaysPassReturnGate(),
+                roadRules = ZoneRoadRuleWatcher(zones, clock),
             ),
         ),
         sources = signals.asSources(),
@@ -106,7 +111,7 @@ class AdminTestHarness(
                 learningScreen = ports.asPorts().learningScreen,
                 learningSpeech = ports.asPorts().learningSpeech,
                 driverData = RepositoryDriverDataEraser(driverSessions, writeScope),
-                notifier = RecordingPorts().asPorts().notifier,
+                notifier = ports.asPorts().notifier,
             ),
         ),
     )
@@ -159,6 +164,9 @@ class AdminTestHarness(
 
         /** 언어를 골라 새로 시작한 대여의 식별자. */
         const val NEW_RENTAL_ID = "rental-new"
+
+        /** 구역이 하나도 없는 데이터. */
+        val NO_ZONES = ZoneData(emptyList(), emptyList(), emptyList())
 
         /** 카드·문항이 없는 콘텐츠. */
         val EMPTY_CATALOG = LearningCatalog(StorageFixtures.CONTENT_VERSION, emptyList(), emptyList())

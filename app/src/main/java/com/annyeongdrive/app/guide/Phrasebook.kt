@@ -21,7 +21,7 @@ object EnglishPhrasebook : Phrasebook {
         val limit = params[Params.LIMIT]
         return when (rule) {
             Rule.SCHOOL_ZONE -> when (role) {
-                SentenceRole.CORE -> "School zone. Speed limit ${limit ?: "30"}."
+                SentenceRole.CORE -> schoolZoneCore(limit)
                 SentenceRole.CONSEQUENCE -> "Children cross here, and fines are doubled."
             }
             Rule.SPEED_CAMERA -> when (role) {
@@ -32,10 +32,21 @@ object EnglishPhrasebook : Phrasebook {
                     "Tickets go to the rental company and are charged to you later."
             }
             Rule.PARKING_CAMERA -> when (role) {
-                SentenceRole.CORE -> "Parking enforcement camera here."
+                SentenceRole.CORE -> "Parking enforcement area nearby. Check the signs for allowed times and exceptions."
                 SentenceRole.CONSEQUENCE ->
                     "Parking tickets go to the rental company and are charged to you later."
             }
         }
+    }
+
+    /**
+     * 보호구역 핵심 문장. 유효한 제한속도가 있을 때만 숫자를 말한다(30으로 채우지 않는다).
+     *
+     * @param limit 제한속도. 없으면 null
+     * @return 핵심 문장
+     */
+    private fun schoolZoneCore(limit: String?): String {
+        if (limit == null) return "School zone. Follow the posted speed limit."
+        return "School zone. Speed limit $limit."
     }
 }

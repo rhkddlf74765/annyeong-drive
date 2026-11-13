@@ -45,24 +45,3 @@ class RepositoryDriverDataEraser(
         scope.launch(start = CoroutineStart.UNDISPATCHED) { repository.clear() }
     }
 }
-
-/**
- * 주정차 경고·오주유 안내 창구. 문구와 heads-up 알림은 8단계에서 만든다.
- * 지금은 검수 구역 조회가 늘 "없음"(NoStopPlaces)이고 오주유 기능이 꺼져 있어 불리지 않는다.
- */
-class PendingDriveNotifier : DriveNotifierPort {
-
-    /**
-     * [구현 예정] 검수된 주정차 구역에서 확인을 요청하는 경고를 음성과 heads-up 알림으로 낸다.
-     * implementation-plan.md 8단계 "주정차 경고"에서 구현한다.
-     *
-     * @param zoneId 검수된 구역 식별자
-     */
-    override fun announceParkingWarning(zoneId: String): Unit = TODO("구현 예정: 8단계 주정차 경고 음성·알림")
-
-    /**
-     * [구현 예정] 오주유 방지 확인 안내를 낸다.
-     * implementation-plan.md P1 "오주유 방지 뼈대"에서 구현한다.
-     */
-    override fun announceFuelCheck(): Unit = TODO("구현 예정: P1 오주유 방지 안내")
-}

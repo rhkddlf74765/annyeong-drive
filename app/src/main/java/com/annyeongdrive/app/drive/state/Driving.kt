@@ -1,5 +1,6 @@
 package com.annyeongdrive.app.drive.state
 
+import com.annyeongdrive.app.drive.DriveAction
 import com.annyeongdrive.app.drive.DriveContext
 import com.annyeongdrive.app.drive.DriveEvent
 import com.annyeongdrive.app.drive.Transition
@@ -11,21 +12,38 @@ import com.annyeongdrive.app.drive.Transition
 sealed interface Driving : DriveState
 
 /**
- * 주행 — 일반 주행. 규칙 상기(자기 전이)는 8단계에서 붙인다.
- * 상태 머신: 들어옴 T10, 나감 T11(부모 규칙)
+ * 주행 — 일반 주행. 기어 D/R로 달리는 동안 위치가 바뀌면 규칙(보호구역·제한속도·단속 카메라)을 다시 알려 준다.
+ * 상태 머신: 들어옴 T10, 자기 전이 B11, 나감 T11(부모 규칙)
  */
 data object DrivingCruising : Driving {
 
     /**
-     * 일반 주행 중 이벤트를 처리한다. 지금은 주행 공통 규칙만 있다.
-     * 상태 머신: T11
+     * 일반 주행 중 이벤트를 처리한다. 정차 조건이면 정차로 가고, 아니면 위치가 바뀔 때 규칙 안내를 낸다.
+     * 상태 머신: T11, B11
      *
      * @param event 받은 이벤트
      * @param context 판단 정보
      * @return 전이. 처리하지 않는 이벤트면 null
      */
     override fun handle(event: DriveEvent, context: DriveContext): Transition? =
-        handleInDriving(context) // T11
+        handleInDriving(context) ?: remindRoadRules(event, context) // T11, B11
+}
+
+/**
+ * 기어 D/R로 달리는 중 위치가 바뀌면 알려 줄 규칙을 찾아 안내 할 일로 낸다. 상태는 그대로다.
+ * N이나 기어를 모를 때(차속만 있는 경우)는 말하지 않는다(기능 보드 "주행 중 규칙 안내" 6번).
+ * 상태 머신: B11
+ *
+ * @param event 받은 이벤트
+ * @param context 판단 정보
+ * @return 규칙 안내 자기 전이. 알릴 규칙이 없으면 null
+ */
+private fun remindRoadRules(event: DriveEvent, context: DriveContext): Transition? {
+    if (event !is DriveEvent.LocationChanged) return null
+    if (!context.vehicle.isDrivingGear()) return null
+    val reminders = context.roadRules.observe(event.point)
+    if (reminders.isEmpty()) return null
+    return Transition(DrivingCruising, reminders.map(DriveAction::RemindRoadRule)) // B11
 }
 
 /**

@@ -2,6 +2,7 @@ package com.annyeongdrive.app.drive
 
 import com.annyeongdrive.app.drive.state.DriveState
 import com.annyeongdrive.app.gear.Gear
+import com.annyeongdrive.app.guide.RoadRuleReminder
 import com.annyeongdrive.app.location.GeoPoint
 import com.annyeongdrive.app.vehicle.SeatOccupancy
 import com.annyeongdrive.app.vehicle.UxRestriction
@@ -23,6 +24,9 @@ class DriveScenario(flags: FeatureFlags = FeatureFlags()) {
     /** 정차 장소 가짜. 테스트에서 값을 바꾼다. */
     val stopPlaces = FakeStopPlaces()
 
+    /** 주행 중 규칙 판단 가짜. 테스트에서 다음에 찾을 규칙을 정한다. */
+    val roadRules = FakeRoadRules()
+
     private val coordinator = DriveCoordinator(
         DriveContext(
             vehicle = VehicleSnapshot.UNKNOWN,
@@ -31,6 +35,7 @@ class DriveScenario(flags: FeatureFlags = FeatureFlags()) {
             stopPlaces = stopPlaces,
             flags = flags,
             returnGate = AlwaysPassReturnGate(),
+            roadRules = roadRules,
         ),
     )
 
@@ -179,6 +184,29 @@ class FakeLearningStatus : LearningStatusReader {
 }
 
 /** 값을 직접 정하고 주유소 조회 횟수를 세는 정차 장소 가짜. */
+/** 주행 중 규칙 판단 가짜. 위치를 받을 때마다 [next]를 한 번 돌려주고 비운다. 받은 위치를 기록한다. */
+class FakeRoadRules : RoadRuleWatcher {
+
+    /** 다음 위치에서 찾을 규칙. */
+    var next: List<RoadRuleReminder> = emptyList()
+
+    /** 받은 위치(불린 순서대로). */
+    val observed = mutableListOf<GeoPoint>()
+
+    /**
+     * 위치를 기록하고 정해 둔 규칙을 한 번 돌려준다.
+     *
+     * @param point 지금 위치
+     * @return [next]
+     */
+    override fun observe(point: GeoPoint): List<RoadRuleReminder> {
+        observed += point
+        val found = next
+        next = emptyList()
+        return found
+    }
+}
+
 class FakeStopPlaces : StopPlaceLookup {
 
     /** 검수된 주정차 금지 구역 식별자. null이면 구역 밖. */

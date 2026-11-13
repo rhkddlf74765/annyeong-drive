@@ -26,8 +26,15 @@ class DriveActionExecutor(private val ports: DriveOutputPorts) {
     private fun execute(action: DriveAction) = when (action) {
         DriveAction.CloseLearningScreen -> ports.learningScreen.close()
         DriveAction.StopLearningSpeech -> ports.learningSpeech.stop()
-        DriveAction.ResetDriverData -> ports.driverData.erase()
+        DriveAction.ResetDriverData -> resetDriverData()
         is DriveAction.AnnounceParkingWarning -> ports.notifier.announceParkingWarning(action.zoneId)
         DriveAction.AnnounceFuelCheck -> ports.notifier.announceFuelCheck()
+        is DriveAction.RemindRoadRule -> ports.notifier.remindRoadRule(action.reminder)
+    }
+
+    /** 운전자 데이터를 지우고, 안내의 "처음 만남" 횟수도 대여와 함께 처음부터 다시 세게 한다. */
+    private fun resetDriverData() {
+        ports.driverData.erase()
+        ports.notifier.forgetEncounters()
     }
 }

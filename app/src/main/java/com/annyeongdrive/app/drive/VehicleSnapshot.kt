@@ -14,6 +14,7 @@ import com.annyeongdrive.app.vehicle.UxRestriction
  * @property ux 현재 화면 제한
  * @property location 마지막 위치. 아직 받지 못했으면 null
  * @property seatBelts 좌석별 안전띠 경고 신호. 상태 전이에는 쓰지 않고 출발 전 점검 화면이 읽는다
+ * @property shiftedIntoPark 마지막 기어 변경이 P가 아닌 기어(D·R·N)에서 P로 바꾼 것인지. 앱을 켤 때 처음 받은 P는 아니다(T13 가드)
  */
 data class VehicleSnapshot(
     val gear: Gear,
@@ -21,6 +22,7 @@ data class VehicleSnapshot(
     val ux: UxRestriction,
     val location: GeoPoint?,
     val seatBelts: SeatBeltReadings = SeatBeltReadings.UNKNOWN,
+    val shiftedIntoPark: Boolean = false,
 ) {
 
     /**
@@ -30,7 +32,7 @@ data class VehicleSnapshot(
      * @return 갱신된 스냅샷
      */
     fun updatedBy(event: DriveEvent): VehicleSnapshot = when (event) {
-        is DriveEvent.GearChanged -> copy(gear = event.gear)
+        is DriveEvent.GearChanged -> copy(gear = event.gear, shiftedIntoPark = isShiftIntoPark(event.gear))
         is DriveEvent.SpeedChanged -> copy(speedKmh = event.kmh)
         is DriveEvent.UxRestrictionChanged -> copy(ux = event.restriction)
         is DriveEvent.LocationChanged -> copy(location = event.point)
@@ -92,11 +94,23 @@ data class VehicleSnapshot(
         gear == Gear.UNKNOWN || speedKmh == null || ux == UxRestriction.UNKNOWN
 
     /**
-     * 기어가 주행 기어(D 또는 R)인지 판단한다.
+     * 새 기어가 P이고 지금 기어가 P가 아닌 알려진 기어(D·R·N)인지 판단한다. 기어를 모르다가 처음 받은 P는 바꾼 것이 아니다.
+     *
+     * @param next 새 기어
+     * @return P가 아닌 기어에서 P로 바꿨으면 true
+     */
+    private fun isShiftIntoPark(next: Gear): Boolean {
+        if (next != Gear.P) return false
+        return gear == Gear.D || gear == Gear.R || gear == Gear.N
+    }
+
+    /**
+     * 기어가 주행 기어(D 또는 R)인지 판단한다. 주행 중 규칙 안내는 이때만 한다.
+     * 상태 머신: T9 가드, B11 가드
      *
      * @return D나 R이면 true
      */
-    private fun isDrivingGear(): Boolean = gear == Gear.D || gear == Gear.R
+    fun isDrivingGear(): Boolean = gear == Gear.D || gear == Gear.R
 
     /**
      * 차속이 0인지 판단한다. 차속을 아직 받지 못했으면 정차로 보지 않는다.

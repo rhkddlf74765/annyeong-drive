@@ -48,7 +48,7 @@ class AnnouncementManager(
     private fun toAnnouncement(event: ZoneEvent): Announcement? = when (event) {
         is ZoneEvent.SchoolZoneEntered -> Announcement(
             Rule.SCHOOL_ZONE,
-            mapOf(Params.LIMIT to event.zone.speedLimitKmh.toString()),
+            limitParams(validSpeedLimit(event.zone.speedLimitKmh)),
         )
         is ZoneEvent.SpeedCameraAhead -> Announcement(
             Rule.SPEED_CAMERA,
@@ -59,5 +59,16 @@ class AnnouncementManager(
         )
         is ZoneEvent.StoppedNearParkingCamera -> Announcement(Rule.PARKING_CAMERA)
         ZoneEvent.SchoolZoneExited -> null   // 이탈은 지금은 말하지 않는다
+    }
+
+    /**
+     * 유효한 제한속도가 있을 때만 문장 재료에 넣는다. 없는 숫자는 채우지 않는다.
+     *
+     * @param limitKmh 유효한 제한속도. 없으면 null
+     * @return 문장 재료
+     */
+    private fun limitParams(limitKmh: Int?): Map<String, String> {
+        val limit = limitKmh ?: return emptyMap()
+        return mapOf(Params.LIMIT to limit.toString())
     }
 }

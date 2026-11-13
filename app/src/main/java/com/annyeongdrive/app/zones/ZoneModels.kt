@@ -1,13 +1,13 @@
 package com.annyeongdrive.app.zones
 
-/** 어린이보호구역 한 곳. 시설 위치를 중심으로 radiusM 안을 보호구역으로 본다. */
+/** 어린이보호구역 한 곳. 시설 위치를 중심으로 radiusM 안을 보호구역으로 본다. 제한속도를 모르면 speedLimitKmh는 null이다(30으로 채우지 않는다). */
 data class SchoolZone(
     val id: String,
     val name: String,
     val lat: Double,
     val lon: Double,
     val radiusM: Double,
-    val speedLimitKmh: Int,
+    val speedLimitKmh: Int?,
 )
 
 /** 과속 단속 카메라. protectedZone은 "school" / "senior" / "none". */

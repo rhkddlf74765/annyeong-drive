@@ -48,13 +48,15 @@ data object ParkedContext : Parked, TransientState {
     }
 
     /**
-     * 정차한 위치가 검수된 주정차 금지 구역 안이면 구역 식별자를 돌려준다.
+     * 기어를 P로 바꾼 순간이고 정차한 위치가 검수된 주정차 금지 구역 근처면 구역 식별자를 돌려준다.
+     * 앱을 켤 때 이미 P였던 경우(착좌 T3로 들어온 정차)는 경고하지 않는다(기능 보드 "주정차 경고" 5번, 가드 해석 보완 11/14).
      * 상태 머신: T13 가드
      *
      * @param context 판단 정보
-     * @return 구역 식별자. 위치를 모르거나 구역 밖이면 null
+     * @return 구역 식별자. P로 바꾼 순간이 아니거나, 위치를 모르거나, 구역 밖이면 null
      */
     private fun verifiedNoParkingZoneAt(context: DriveContext): String? {
+        if (!context.vehicle.shiftedIntoPark) return null
         val point = context.vehicle.location ?: return null
         return context.stopPlaces.verifiedNoParkingZoneNear(point)
     }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 영어 문구. 지금은 음성 안내 문장만 있다(Pleos TTS가 영어만 지원). 화면 문구 번역은 10단계에서 채운다. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="guide_channel_parking">Parking warning</string>
+    <string name="guide_channel_road_rule">Driving rule reminders</string>
+    <string name="guide_school_zone_core_limit">School zone. Speed limit %1$d kilometers per hour.</string>
+    <string name="guide_school_zone_core">School zone. Follow the posted speed limit.</string>
+    <string name="guide_school_zone_consequence">Children cross here, and fines are higher.</string>
+    <string name="guide_camera_core_limit">Speed camera ahead. Limit %1$d kilometers per hour.</string>
+    <string name="guide_camera_core">Speed camera ahead. Follow the posted speed limit.</string>
+    <string name="guide_school_camera_core_limit">School zone camera ahead. Limit %1$d kilometers per hour.</string>
+    <string name="guide_school_camera_core">School zone camera ahead. Follow the posted speed limit.</string>
+    <string name="guide_camera_consequence">Tickets go to the rental company and may be charged to you later.</string>
+    <string name="guide_parking_core">Parking enforcement area nearby. Check the signs for allowed times and exceptions.</string>
+    <string name="guide_parking_consequence">Parking fines go to the rental company and may be charged to you later.</string>
+</resources>

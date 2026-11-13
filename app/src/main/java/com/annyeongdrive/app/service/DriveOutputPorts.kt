@@ -1,5 +1,7 @@
 package com.annyeongdrive.app.service
 
+import com.annyeongdrive.app.guide.RoadRuleReminder
+
 /** 교육·퀴즈 화면을 닫는 출력 창구. */
 fun interface LearningScreenPort {
 
@@ -33,6 +35,16 @@ interface DriveNotifierPort {
 
     /** 오주유 방지 확인 안내를 낸다. */
     fun announceFuelCheck()
+
+    /**
+     * 주행 중 규칙을 짧게 다시 알려 준다.
+     *
+     * @param reminder 알려 줄 규칙
+     */
+    fun remindRoadRule(reminder: RoadRuleReminder)
+
+    /** 대여가 끝나 "처음 만남" 횟수를 처음부터 다시 센다. */
+    fun forgetEncounters()
 }
 
 /**
@@ -41,7 +53,7 @@ interface DriveNotifierPort {
  * @property learningScreen 교육 화면 닫기
  * @property learningSpeech 학습 음성 중단
  * @property driverData 운전자 데이터 지우기
- * @property notifier 주정차·오주유 안내
+ * @property notifier 주정차·오주유·주행 중 규칙 안내
  */
 data class DriveOutputPorts(
     val learningScreen: LearningScreenPort,

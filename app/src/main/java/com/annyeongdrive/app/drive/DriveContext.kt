@@ -10,6 +10,7 @@ package com.annyeongdrive.app.drive
  * @property stopPlaces 정차 장소 조회 창구
  * @property flags 기능 플래그
  * @property returnGate 반납 처리 진입 확인 창구
+ * @property roadRules 주행 중 다시 알려 줄 규칙을 찾는 창구(B11). 구역 데이터가 없으면 아무 규칙도 찾지 않는다
  */
 data class DriveContext(
     val vehicle: VehicleSnapshot,
@@ -18,4 +19,5 @@ data class DriveContext(
     val stopPlaces: StopPlaceLookup,
     val flags: FeatureFlags,
     val returnGate: ReturnGate,
+    val roadRules: RoadRuleWatcher = NoRoadRules(),
 )
