@@ -26,7 +26,8 @@ android {
         release {
             optimization {
                 enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
+                // kotlin.**을 넣으면 R8이 표준 라이브러리 클래스를 옮기며 접근 오류(IllegalAccessError)로 앱이 시작하자마자 멈춘다(11/14 에뮬레이터 확인).
+                packageScope = setOf("androidx.**", "kotlinx.**")
             }
         }
     }
