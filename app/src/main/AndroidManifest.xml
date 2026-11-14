@@ -12,6 +12,10 @@
     <uses-permission android:name="pleos.car.permission.CAR_DOORS" />
     <uses-permission android:name="pleos.car.permission.CAR_WINDOWS" />
     <uses-permission android:name="pleos.car.permission.CAR_SEATS" />
+    <!-- 안전띠 미착용 경고 (Vehicle SDK Safety) -->
+    <uses-permission android:name="pleos.car.permission.CAR_SAFETY" />
+    <!-- 차속 (android.car PERF_VEHICLE_SPEED, 실행 중 허용 권한). Vehicle SDK에는 차속 API가 없다 -->
+    <uses-permission android:name="android.car.permission.CAR_SPEED" />
 
     <!-- 내비 연동 (NaviHelper SDK) -->
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />

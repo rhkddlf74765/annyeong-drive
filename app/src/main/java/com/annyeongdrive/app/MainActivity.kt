@@ -141,14 +141,19 @@ class MainActivity : ComponentActivity() {
     private companion object {
         const val PLEOS_FUSED_LOCATION = "pleos.car.permission.FUSED_LOCATION"
         const val PLEOS_TTS = "pleos.car.permission.TTS_SERVICE"
+        const val CAR_SPEED = "android.car.permission.CAR_SPEED"
 
-        /** 서비스 시작 전에 요청하는 권한. 위치는 location 타입 서비스, 알림은 상주 알림, Pleos는 위치·음성 SDK용이다. */
+        /**
+         * 서비스 시작 전에 요청하는 권한. 위치는 location 타입 서비스, 알림은 상주 알림, Pleos는 위치·음성 SDK용,
+         * 차속은 release의 실제 차속 신호용이다. 차속을 거부하면 서비스는 시작하지만 정차·주행을 판단하지 못한다.
+         */
         val REQUIRED_PERMISSIONS = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.POST_NOTIFICATIONS,
             PLEOS_FUSED_LOCATION,
             PLEOS_TTS,
+            CAR_SPEED,
         )
     }
 }

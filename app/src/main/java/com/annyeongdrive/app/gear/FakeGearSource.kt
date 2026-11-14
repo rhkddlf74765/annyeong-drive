@@ -5,7 +5,7 @@ import com.annyeongdrive.app.vehicle.fake.FakeSignal
 
 /**
  * 개발·시연용 가짜 기어 신호. 개발용 버튼이나 테스트에서 [shift]로 기어를 바꾼다.
- * 실제 차량 신호(CarGearSource)가 준비되면 이 구현을 교체한다.
+ * release 빌드는 실제 차량 신호([CarGearSource])를 쓴다.
  */
 class FakeGearSource private constructor(
     private val signal: FakeSignal<Gear>,

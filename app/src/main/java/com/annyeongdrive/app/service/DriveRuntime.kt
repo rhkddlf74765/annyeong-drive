@@ -59,7 +59,7 @@ class DriveRuntime(context: Context) {
 
     /**
      * 가짜 입력 어댑터 한 벌. 실제 차량 신호가 연결되면 이 자리를 바꾼다.
-     * release 빌드에서는 화면 제한만 실제 신호를 쓰므로 여기의 화면 제한 가짜는 엔진에 연결되지 않는다.
+     * release 빌드에서는 기어·차속·화면 제한·착좌·안전띠를 실제 신호로 바꾸므로 여기의 그 가짜들은 엔진에 연결되지 않는다.
      */
     val fakeSignals = FakeDriveSignals()
 
