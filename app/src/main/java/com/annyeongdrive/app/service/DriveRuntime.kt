@@ -9,6 +9,7 @@ import com.annyeongdrive.app.drive.DriveContext
 import com.annyeongdrive.app.drive.DriveCoordinator
 import com.annyeongdrive.app.drive.FeatureFlags
 import com.annyeongdrive.app.drive.VehicleSnapshot
+import com.annyeongdrive.app.guide.CallAwareGuidanceOutput
 import com.annyeongdrive.app.guide.EncounterBasedPolicy
 import com.annyeongdrive.app.guide.GuidanceAnnouncer
 import com.annyeongdrive.app.learning.CORE_CATALOG
@@ -65,10 +66,10 @@ class DriveRuntime(context: Context) {
     /** 시연 지역 구역 데이터(보호구역·과속 카메라·주정차 카메라). 앱에 들어 있는 zones.json이다. */
     private val zones = ZoneLoader.load(appContext)
 
-    /** 주행 중 규칙 안내·주정차 경고를 문장으로 만들어 말하고 띄운다. 대여 언어로 안내한다. */
+    /** 주행 중 규칙 안내·주정차 경고를 문장으로 만들어 말하고 띄운다. 대여 언어로 안내하고, 통화 중에는 알림으로만 띄운다. */
     val guidance = GuidanceAnnouncer(
         policy = EncounterBasedPolicy(),
-        output = AndroidGuidanceOutput(appContext),
+        output = CallAwareGuidanceOutput(AndroidGuidanceOutput(appContext), CallState(appContext)::isInCall),
         language = { driverSessions.session.value?.language },
     )
 
