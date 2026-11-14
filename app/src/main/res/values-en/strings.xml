@@ -1,6 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 영어 문구. 지금은 음성 안내 문장만 있다(Pleos TTS가 영어만 지원). 화면 문구 번역은 10단계에서 채운다. -->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+<!--
+   영어 문구. 화면은 대여 언어(영어)를 고르면 이 파일로 바뀌고, 음성 안내도 이 파일의 guide_ 문장을 읽는다.
+   기본 values(한국어)가 임시 문구인 곳은 영어도 임시 번역이다. 부록 원문·공식 번역을 받으면 이 파일만 바꾼다.
+   앱 이름과 언어 이름(각 언어로 쓴 이름)은 번역하지 않는다.
+-->
+<resources>
+    <string name="home_preparing">Getting the next screen ready.</string>
+    <string name="drive_service_channel">Driving guidance</string>
+    <string name="drive_service_running">Driving guidance is on.</string>
+    <string name="home_location_needed">Allow location access to start driving guidance.</string>
+    <string name="home_idle">Sit in the driver\'s seat to start your rental guide.</string>
+    <string name="driving_home_title">You are driving.</string>
+    <string name="driving_home_body">While you drive, guidance comes by voice and notifications. You can continue the lessons after you stop.</string>
+    <string name="parking_warning_acknowledge">Got it</string>
+
+    <string name="parked_home_title">You are parked.</string>
+    <string name="action_return">Return car</string>
+    <string name="action_vendor_settings">Rental company settings</string>
+    <string name="action_learning_open">Open lessons and quiz</string>
+    <string name="learning_unavailable_checking">Checking the car\'s status. Please try again in a moment.</string>
+    <string name="learning_unavailable_restricted">Stop the car and shift into P to open this.</string>
+
+    <string name="resume_offer_title">Continue where you left off?</string>
+    <string name="resume_offer_body">You can pick up from where you stopped last time.</string>
+    <string name="action_resume">Continue</string>
+    <string name="action_restart">Start over</string>
+
+    <string name="action_confirm">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_save">Save</string>
+
+    <string name="admin_code_label">Admin code (8 letters or numbers)</string>
+    <string name="current_code_label">Current admin code</string>
+    <string name="new_code_label">New admin code (8 letters or numbers)</string>
+    <string name="confirm_code_label">Enter the new admin code again</string>
+    <string name="code_wrong">The code is incorrect. %1$d tries left.</string>
+    <string name="code_locked">Too many tries. Please try again after %1$s.</string>
+    <string name="code_invalid">Enter 8 letters or numbers.</string>
+    <string name="code_mismatch">The two codes do not match.</string>
+    <string name="code_changed">The admin code has been changed.</string>
+    <string name="config_unreadable">Could not read the rental company settings. Please contact the rental company.</string>
+
+    <string name="return_title">Return the car</string>
+    <string name="return_entry">A rental company staff member needs to enter the admin code.</string>
+    <string name="return_code_not_set">Set the admin code in rental company settings first. The car cannot be returned yet.</string>
+
+    <string name="vendor_title">Rental company settings</string>
+    <string name="vendor_first_code">This device is new. Please set an admin code.</string>
+    <string name="vendor_fuel">Fuel type</string>
+    <string name="fuel_gasoline">Gasoline</string>
+    <string name="fuel_diesel">Diesel</string>
+    <string name="fuel_lpg">LPG</string>
+    <string name="fuel_electric">Electric</string>
+    <string name="not_decided">Not set</string>
+    <string name="vendor_hipass">Hi-pass</string>
+    <string name="hipass_available">Available</string>
+    <string name="hipass_not_available">Not available</string>
+    <string name="vendor_hipass_settlement">How Hi-pass tolls are settled</string>
+    <string name="vendor_return_place">Return location</string>
+    <string name="vendor_due_at">Return time (e.g. 2026-11-14 18:00)</string>
+    <string name="vendor_energy_rule">Fuel or battery level on return</string>
+    <string name="vendor_contact">Rental company contact</string>
+    <string name="vendor_reset_grace">Backup reset time N (hours)</string>
+    <string name="due_at_invalid">Enter the return time like 2026-11-14 18:00.</string>
+    <string name="grace_invalid">Enter a backup reset time of 1 or more.</string>
+    <string name="vendor_unsaved">You have unsaved changes. They will be lost if you close or start driving.</string>
+    <string name="vendor_change_code">Change admin code</string>
+
+    <string name="setup_language_title">Choose your language.</string>
+    <string name="precheck_title">Before you drive</string>
+    <string name="precheck_seatbelt_title">Seat belts</string>
+    <string name="precheck_seatbelt_body">Check that everyone in every seat is wearing a seat belt. Rear seats too.</string>
+    <string name="precheck_seatbelt_warning">Seat belt warning on: %1$s</string>
+    <string name="precheck_seatbelt_confirm">Everyone is wearing a seat belt</string>
+    <string name="precheck_seatbelt_needed">Check the seat belts yourself, then tick the box.</string>
+    <string name="seat_driver">Driver</string>
+    <string name="seat_front_passenger">Front passenger</string>
+    <string name="seat_rear_left">Rear left</string>
+    <string name="seat_rear_center">Rear center</string>
+    <string name="seat_rear_right">Rear right</string>
+    <string name="precheck_fuel_title">Fuel</string>
+    <string name="precheck_fuel_body">This car uses %1$s. Make sure you fill up with the same fuel.</string>
+    <string name="precheck_fuel_charge">This is an electric car. Check how to charge it and where the charging port is.</string>
+    <string name="precheck_fuel_ask">Check the label at the fuel door for the fuel type. If you are not sure, ask the rental company.</string>
+    <string name="precheck_hipass_title">Hi-pass (electronic toll)</string>
+    <string name="precheck_hipass_available">The rental company says you can use Hi-pass in this car.</string>
+    <string name="precheck_hipass_settlement">Settlement: %1$s</string>
+    <string name="precheck_hipass_not_available">The rental company says Hi-pass cannot be used in this car. Use the regular lanes at toll gates.</string>
+    <string name="precheck_hipass_ask">Ask the rental company whether you can use Hi-pass and how tolls are settled.</string>
+    <string name="precheck_return_title">Return terms</string>
+    <string name="precheck_return_place">Return location: %1$s</string>
+    <string name="precheck_return_due">Return time: %1$s</string>
+    <string name="precheck_return_energy">Fuel or battery level: %1$s</string>
+    <string name="ask_vendor_short">Please check with the rental company</string>
+    <string name="precheck_done">Done</string>
+    <string name="learning_start_title">Want a quick look at Korean driving rules?</string>
+    <string name="learning_start_body">You can only view this while the car is stopped. It closes as soon as you start driving.</string>
+    <string name="action_learning_begin">Start</string>
+    <string name="action_later">Later</string>
+
+    <string name="learn_card_precheck_title">Check before you drive</string>
+    <string name="learn_card_precheck_body">Before you set off, check every seat belt, the fuel type, and the return location and time.</string>
+    <string name="learn_card_precheck_body_ev">Before you set off, check every seat belt, how to charge and where the charging port is, and the return location and time.</string>
+    <string name="learn_card_lane_title">Korea drives on the right</string>
+    <string name="learn_card_lane_body">Cars drive on the right side of the road, and the driver\'s seat is on the left. After a left turn, do not enter the lane for oncoming traffic.</string>
+    <string name="learn_card_zone_title">School zones</string>
+    <string name="learn_card_zone_body">School zones have lower speed limits. Follow the posted limit. At a crosswalk without traffic lights, stop briefly before crossing even if no one is there.</string>
+    <string name="learn_card_turn_title">Intersections and turns</string>
+    <string name="learn_card_turn_body">With an \'unprotected left turn\' (비보호) sign, turn left on green only when you do not block oncoming cars or pedestrians. When turning right, let pedestrians on the crosswalk go first. In a roundabout, cars already circling go first.</string>
+    <string name="learn_card_speed_title">Speed is in km/h</string>
+    <string name="learn_card_speed_body">Speed and distance are shown in km/h and km. Speed limits differ by road, so follow the signs and your navigation.</string>
+    <string name="learn_card_signs_title">Korean road signs</string>
+    <string name="learn_card_signs_body">\'정지\' means stop, \'서행\' means slow down, and \'진입금지\' means do not enter. On an \'일방통행\' (one-way) road, drive only in the direction of the arrow.</string>
+    <string name="learn_q1_question">Which side of the road do cars drive on in Korea?</string>
+    <string name="learn_q1_o1">Right</string>
+    <string name="learn_q1_o2">Left</string>
+    <string name="learn_q1_o3">The wider side</string>
+    <string name="learn_q1_o4">There is no rule</string>
+    <string name="learn_q1_explain">Korea drives on the right. After a left turn, also enter the right-hand lane.</string>
+    <string name="learn_q2_question">In a school zone, what do you do at a crosswalk without traffic lights?</string>
+    <string name="learn_q2_o1">Stop only when you see a pedestrian</string>
+    <string name="learn_q2_o2">Stop briefly even if no one is there, then go</string>
+    <string name="learn_q2_o3">Honk and go</string>
+    <string name="learn_q2_o4">Go without slowing down</string>
+    <string name="learn_q2_explain">In a school zone, you must stop briefly at a crosswalk without traffic lights even if no one is there.</string>
+    <string name="learn_q3_question">At an intersection with an \'unprotected left turn\' (비보호) sign, when can you turn left?</string>
+    <string name="learn_q3_o1">Even on a red light</string>
+    <string name="learn_q3_o2">Only when the left-turn arrow is on</string>
+    <string name="learn_q3_o3">On green, when you do not block oncoming cars or pedestrians</string>
+    <string name="learn_q3_o4">Never</string>
+    <string name="learn_q3_explain">An unprotected left turn is allowed only on green, and only when you do not block oncoming cars or pedestrians.</string>
+    <string name="learn_q4_question">When turning right, what do you do if there are pedestrians on the crosswalk?</string>
+    <string name="learn_q4_o1">Stop and wait until they have crossed</string>
+    <string name="learn_q4_o2">Honk so they move</string>
+    <string name="learn_q4_o3">Go quickly before them</string>
+    <string name="learn_q4_o4">Keep going, cars go first</string>
+    <string name="learn_q4_explain">When turning right, stop and wait if someone is crossing or about to cross.</string>
+    <string name="learn_q5_question">Who goes first when entering a roundabout?</string>
+    <string name="learn_q5_o1">The car entering</string>
+    <string name="learn_q5_o2">The bigger car</string>
+    <string name="learn_q5_o3">The car that honks first</string>
+    <string name="learn_q5_o4">The car already circling</string>
+    <string name="learn_q5_explain">In a roundabout, cars already circling go first. Yield, then enter.</string>
+    <string name="learn_action_prev">Previous</string>
+    <string name="learn_action_next">Next</string>
+    <string name="learn_action_close">Close lessons</string>
+    <string name="learn_action_start_quiz">Start quiz</string>
+    <string name="learn_action_check">Check answer</string>
+    <string name="learn_action_skip">Skip</string>
+    <string name="learn_action_next_question">Next</string>
+    <string name="learn_card_position">%1$d / %2$d</string>
+    <string name="learn_question_position">Question %1$d / %2$d</string>
+    <string name="learn_explain_correct">Correct.</string>
+    <string name="learn_explain_answer">Answer: %1$s</string>
+    <string name="learn_result_title">Your results</string>
+    <string name="learn_result_answered">You answered %1$d of %2$d questions.</string>
+    <string name="learn_review_title">Rules to review</string>
+    <string name="learn_review_empty">No rules to review.</string>
+
     <string name="guide_channel_parking">Parking warning</string>
     <string name="guide_channel_road_rule">Driving rule reminders</string>
     <string name="guide_school_zone_core_limit">School zone. Speed limit %1$d kilometers per hour.</string>

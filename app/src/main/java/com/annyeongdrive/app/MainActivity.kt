@@ -41,6 +41,7 @@ import com.annyeongdrive.app.ui.admin.ReturnScreen
 import com.annyeongdrive.app.ui.admin.VendorSettingsActions
 import com.annyeongdrive.app.ui.admin.VendorSettingsView
 import com.annyeongdrive.app.setup.PrecheckView
+import com.annyeongdrive.app.ui.RentalLanguage
 import com.annyeongdrive.app.ui.home.DrivingHome
 import com.annyeongdrive.app.ui.home.ParkingWarningScreen
 import com.annyeongdrive.app.ui.learning.LearningActions
@@ -60,6 +61,7 @@ import kotlinx.coroutines.launch
  * 앱의 첫 화면. 위치·알림 권한을 받은 뒤 주행 안내 서비스(DriveService)를 시작하고,
  * Coordinator의 현재 운전 상태(engine.state)만 보고 화면을 고른다. 기어·차속을 직접 보지 않는다.
  * 대기·대여 설정·교육·이어 보기 제안·정차 대기·주정차 경고·반납 처리·업체 설정·주행 중 화면이 있다.
+ * 화면 문구는 대여 언어를 따른다(RentalLanguage). 대여가 없으면 기기 언어다.
  * 화면은 하나만 둔다(launchMode singleTask). 아이콘이나 알림을 다시 눌러도 새로 쌓이지 않는다.
  * 기능 확인용 화면은 debug 빌드의 CheckActivity에 있다.
  */
@@ -81,9 +83,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val runtime = (application as AnnyeongApplication).runtime
         setContent {
+            val session by runtime.driverSessions.session.collectAsState()
             Annyeong_driveTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    DriveScreen(runtime, messageId.intValue, Modifier.padding(innerPadding))
+                RentalLanguage(session?.language) {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        DriveScreen(runtime, messageId.intValue, Modifier.padding(innerPadding))
+                    }
                 }
             }
         }
