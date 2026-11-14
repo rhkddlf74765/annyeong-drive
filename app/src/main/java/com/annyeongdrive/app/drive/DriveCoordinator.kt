@@ -1,6 +1,7 @@
 package com.annyeongdrive.app.drive
 
 import com.annyeongdrive.app.drive.state.DriveState
+import com.annyeongdrive.app.drive.state.Driving
 import com.annyeongdrive.app.drive.state.Idle
 import com.annyeongdrive.app.drive.state.TransientState
 
@@ -27,14 +28,27 @@ class DriveCoordinator(initialContext: DriveContext) {
     /**
      * 이벤트 하나를 처리하고 할 일 목록을 돌려준다.
      * 차량 신호를 먼저 갱신한 뒤 현재 상태에 맡긴다. 부모 복합 상태의 규칙은 각 상태가 위임한다.
+     * 처리 뒤 주행 상태가 아니면 P로 바꾼 기억을 지운다(T13은 주행을 마친 그 정차에서 한 번만 판단).
      *
      * @param event 받은 이벤트
      * @return 이번 이벤트로 낼 할 일. 전이가 없으면 빈 목록
      */
     fun handle(event: DriveEvent): List<DriveAction> {
         context = context.copy(vehicle = context.vehicle.updatedBy(event))
-        val transition = state.handle(event, context) ?: return emptyList()
-        return enter(transition)
+        val transition = state.handle(event, context)
+        val actions = if (transition == null) emptyList() else enter(transition)
+        forgetParkShiftOutsideDriving()
+        return actions
+    }
+
+    /**
+     * 주행 상태가 아니면 P로 바꾼 기억을 지운다. 주행 중에는 차속이 0이 되어 정차할 때까지 남겨 둔다.
+     * 그래서 반납 뒤 다음 손님의 점검 완료(T8)·착좌(T3)나 정차 중 N → P는 P로 바꾼 순간으로 보지 않는다.
+     * 상태 머신: T13 가드(가드 해석 보완 11/14)
+     */
+    private fun forgetParkShiftOutsideDriving() {
+        if (state is Driving) return
+        context = context.copy(vehicle = context.vehicle.withoutParkShift())
     }
 
     /**

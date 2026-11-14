@@ -14,7 +14,8 @@ import com.annyeongdrive.app.vehicle.UxRestriction
  * @property ux 현재 화면 제한
  * @property location 마지막 위치. 아직 받지 못했으면 null
  * @property seatBelts 좌석별 안전띠 경고 신호. 상태 전이에는 쓰지 않고 출발 전 점검 화면이 읽는다
- * @property shiftedIntoPark 마지막 기어 변경이 P가 아닌 기어(D·R·N)에서 P로 바꾼 것인지. 앱을 켤 때 처음 받은 P는 아니다(T13 가드)
+ * @property shiftedIntoPark 주행 중 P가 아닌 기어(D·R·N)에서 P로 바꿨고 아직 정차 판단에 쓰지 않았는지. 앱을 켤 때 처음 받은 P는 아니다.
+ *   주행이 아닌 상태에서는 Coordinator가 지운다([withoutParkShift]). T13 가드
  */
 data class VehicleSnapshot(
     val gear: Gear,
@@ -39,6 +40,14 @@ data class VehicleSnapshot(
         is DriveEvent.SeatBeltChanged -> copy(seatBelts = event.readings)
         else -> this
     }
+
+    /**
+     * P로 바꾼 기억을 지운 스냅샷을 돌려준다. 정차 판단에 한 번 썼거나 주행 중이 아닐 때 바꾼 P는 다음 정차에 쓰지 않는다.
+     * 상태 머신: T13 가드(가드 해석 보완 11/14)
+     *
+     * @return [shiftedIntoPark]가 false인 스냅샷
+     */
+    fun withoutParkShift(): VehicleSnapshot = copy(shiftedIntoPark = false)
 
     /**
      * 교육·퀴즈를 열 수 있는지 판단한다. 기어 P + 차속 0 + UX 제한 없음일 때만 참이다.
