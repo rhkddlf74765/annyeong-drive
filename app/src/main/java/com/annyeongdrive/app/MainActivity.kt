@@ -95,6 +95,17 @@ class MainActivity : ComponentActivity() {
         permissionLauncher.launch(missing.toTypedArray())
     }
 
+    /**
+     * 다른 화면(설정 등)에 갔다가 돌아오면 위치 권한을 다시 확인한다. 그사이 허용했으면 서비스를 시작한다.
+     * 화면을 하나만 두므로(singleTask) 아이콘으로 돌아와도 onCreate가 다시 불리지 않기 때문이다(11/14 에뮬레이터 확인).
+     * 권한이 여전히 없으면 다시 묻지 않고 안내 문구를 그대로 둔다.
+     */
+    override fun onRestart() {
+        super.onRestart()
+        if (!hasLocationPermission()) return
+        startServiceIfAllowed()
+    }
+
     /** 위치 권한이 있으면 주행 안내 서비스를 시작하고, 없으면 권한이 필요하다는 문구를 보여 준다. */
     private fun startServiceIfAllowed() {
         if (!hasLocationPermission()) {
