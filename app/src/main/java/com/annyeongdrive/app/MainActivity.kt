@@ -10,9 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,7 +19,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.drive.DriveEvent
 import com.annyeongdrive.app.drive.state.ParkedVendorSettings
@@ -29,6 +26,7 @@ import com.annyeongdrive.app.drive.state.Returning
 import com.annyeongdrive.app.service.DriveRuntime
 import com.annyeongdrive.app.service.DriveService
 import com.annyeongdrive.app.ui.admin.ReturnScreen
+import com.annyeongdrive.app.ui.admin.ReturnScreenModel
 import com.annyeongdrive.app.ui.admin.VendorSettingsActions
 import com.annyeongdrive.app.ui.admin.VendorSettingsView
 import com.annyeongdrive.app.setup.PrecheckView
@@ -36,8 +34,10 @@ import com.annyeongdrive.app.ui.AppScreen
 import com.annyeongdrive.app.ui.RentalLanguage
 import com.annyeongdrive.app.ui.home.DrivingHome
 import com.annyeongdrive.app.ui.home.ParkingWarningScreen
+import com.annyeongdrive.app.ui.learning.LearningAccessModel
 import com.annyeongdrive.app.ui.learning.LearningActions
 import com.annyeongdrive.app.ui.learning.LearningScreen
+import com.annyeongdrive.app.ui.learning.LearningScreenModel
 import com.annyeongdrive.app.ui.learning.LearningStartScreen
 import com.annyeongdrive.app.ui.learning.ResumeOfferActions
 import com.annyeongdrive.app.ui.learning.ResumeOfferScreen
@@ -46,7 +46,11 @@ import com.annyeongdrive.app.ui.parked.ParkedHomeActions
 import com.annyeongdrive.app.ui.setup.LanguageScreen
 import com.annyeongdrive.app.ui.setup.PrecheckActions
 import com.annyeongdrive.app.ui.setup.PrecheckScreen
+import com.annyeongdrive.app.ui.setup.PrecheckScreenModel
 import com.annyeongdrive.app.ui.theme.Annyeong_driveTheme
+import com.annyeongdrive.app.ui.theme.ScreenHeading
+import com.annyeongdrive.app.ui.theme.VehicleScreen
+import java.time.ZoneId
 import kotlinx.coroutines.launch
 
 /**
@@ -190,8 +194,9 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             modifier = modifier,
         )
         AppScreen.PRECHECK -> PrecheckScreen(
-            view = PrecheckView.of(vehicle.seatBelts, vendorConfig),
-            progress = precheck,
+            model = PrecheckScreenModel.of(
+                PrecheckView.of(vehicle.seatBelts, vendorConfig), precheck, ZoneId.systemDefault(),
+            ),
             actions = PrecheckActions(
                 onConfirmSeatBelts = setupFlow::confirmSeatBelts,
                 onComplete = { scope.launch { setupFlow.completePrecheck() } },
@@ -204,7 +209,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             modifier = modifier,
         )
         AppScreen.LEARNING -> LearningScreen(
-            view = learningView,
+            model = LearningScreenModel.of(learningView),
             actions = LearningActions(
                 onPreviousCard = { scope.launch { learningFlow.previousCard() } },
                 onNextCard = { scope.launch { learningFlow.nextCard() } },
@@ -218,7 +223,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             modifier = modifier,
         )
         AppScreen.RESUME_OFFER -> ResumeOfferScreen(
-            availability = vehicle.learningAvailability(),
+            model = LearningAccessModel.of(vehicle.learningAvailability()),
             actions = ResumeOfferActions(
                 onResume = resumeOffer::resume,
                 onRestart = { scope.launch { resumeOffer.restart() } },
@@ -227,7 +232,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             modifier = modifier,
         )
         AppScreen.PARKED_HOME -> ParkedHome(
-            availability = vehicle.learningAvailability(),
+            model = LearningAccessModel.of(vehicle.learningAvailability()),
             actions = ParkedHomeActions(
                 onOpenLearning = { runtime.engine.send(DriveEvent.LearningOpenRequested) },
                 onReturn = { runtime.engine.send(DriveEvent.ReturnRequested) },
@@ -236,7 +241,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             modifier = modifier,
         )
         AppScreen.RETURN -> ReturnScreen(
-            state = returnScreen,
+            model = ReturnScreenModel.of(returnScreen, ZoneId.systemDefault()),
             onSubmit = { code -> scope.launch { runtime.returnFlow.submit(code) } },
             onCancel = runtime.returnFlow::cancel,
             modifier = modifier,
@@ -270,9 +275,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
  */
 @Composable
 fun HomeMessage(@StringRes messageId: Int, modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(messageId),
-        style = MaterialTheme.typography.titleLarge,
-        modifier = modifier.padding(24.dp),
-    )
+    VehicleScreen(modifier) {
+        ScreenHeading(stringResource(messageId))
+    }
 }

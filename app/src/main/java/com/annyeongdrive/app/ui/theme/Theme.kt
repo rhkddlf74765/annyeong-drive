@@ -1,58 +1,53 @@
 package com.annyeongdrive.app.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Mint,
+    onPrimary = OnMint,
+    background = NightBackground,
+    onBackground = OnNavy,
+    surface = NightSurface,
+    onSurface = OnNavy,
+    surfaceVariant = NightSurfaceVariant,
+    onSurfaceVariant = OnNavy,
+    outline = NightOutline,
+    error = Color(0xFFFFB4A9),
+    onError = Color(0xFF5E120D),
+    errorContainer = Color(0xFF592521),
+    onErrorContainer = Color(0xFFFFDAD4),
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = Teal,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    background = DayBackground,
+    onBackground = Navy,
+    surface = Color.White,
+    onSurface = Navy,
+    surfaceVariant = DaySurfaceVariant,
+    onSurfaceVariant = Navy,
+    outline = DayOutline,
+    error = Color(0xFF9D241D),
+    onError = Color.White,
+    errorContainer = Color(0xFFFFDFDA),
+    onErrorContainer = Color(0xFF561410),
 )
 
+/** 차량 화면에 주야간 색상과 읽기 쉬운 글자 크기를 적용한다. */
 @Composable
 fun Annyeong_driveTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

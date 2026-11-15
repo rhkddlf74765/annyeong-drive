@@ -18,7 +18,7 @@
     <string name="action_return">Return car</string>
     <string name="action_vendor_settings">Rental company settings</string>
     <string name="action_learning_open">Open lessons and quiz</string>
-    <string name="learning_unavailable_checking">Checking the car\'s status. Please try again in a moment.</string>
+    <string name="learning_unavailable_checking">Checking the vehicle status. Please wait.</string>
     <string name="learning_unavailable_restricted">Stop the car and shift into P to open this.</string>
 
     <string name="resume_offer_title">Continue where you left off?</string>
@@ -55,7 +55,7 @@
     <string name="fuel_electric">Electric</string>
     <string name="not_decided">Not set</string>
     <string name="vendor_hipass">Hi-pass</string>
-    <string name="hipass_available">Available</string>
+    <string name="hipass_available">Allowed by rental company</string>
     <string name="hipass_not_available">Not available</string>
     <string name="vendor_hipass_settlement">How Hi-pass tolls are settled</string>
     <string name="vendor_return_place">Return location</string>
@@ -85,7 +85,7 @@
     <string name="precheck_fuel_charge">This is an electric car. Check how to charge it and where the charging port is.</string>
     <string name="precheck_fuel_ask">Check the label at the fuel door for the fuel type. If you are not sure, ask the rental company.</string>
     <string name="precheck_hipass_title">Hi-pass (electronic toll)</string>
-    <string name="precheck_hipass_available">The rental company says you can use Hi-pass in this car.</string>
+    <string name="precheck_hipass_available">The rental company has provided instructions for using Hi-pass in this car.</string>
     <string name="precheck_hipass_settlement">Settlement: %1$s</string>
     <string name="precheck_hipass_not_available">The rental company says Hi-pass cannot be used in this car. Use the regular lanes at toll gates.</string>
     <string name="precheck_hipass_ask">Ask the rental company whether you can use Hi-pass and how tolls are settled.</string>

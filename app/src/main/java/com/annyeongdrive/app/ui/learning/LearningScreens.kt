@@ -3,20 +3,22 @@ package com.annyeongdrive.app.ui.learning
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.annyeongdrive.app.R
@@ -24,24 +26,18 @@ import com.annyeongdrive.app.learning.CORE_CATALOG
 import com.annyeongdrive.app.learning.LearningPlan
 import com.annyeongdrive.app.learning.LearningSituation
 import com.annyeongdrive.app.learning.LearningView
-import com.annyeongdrive.app.learning.PlannedQuestion
-import com.annyeongdrive.app.learning.TextId
 import com.annyeongdrive.app.ui.theme.Annyeong_driveTheme
+import com.annyeongdrive.app.ui.theme.PrimaryAction
+import com.annyeongdrive.app.ui.theme.QuietAction
+import com.annyeongdrive.app.ui.theme.ScreenHeading
+import com.annyeongdrive.app.ui.theme.ScreenSection
+import com.annyeongdrive.app.ui.theme.SecondaryAction
+import com.annyeongdrive.app.ui.theme.VehicleScreen
+import com.annyeongdrive.app.ui.theme.VehicleTargetHeight
 import com.annyeongdrive.app.vehicle.FuelType
 import com.annyeongdrive.app.vendor.HiPassAvailability
 
-/**
- * 교육·퀴즈 화면의 사용자 동작 묶음.
- *
- * @property onPreviousCard 이전 규칙
- * @property onNextCard 다음 규칙
- * @property onStartQuiz 핵심 퀴즈 시작
- * @property onSelect 선택지 고르기
- * @property onCheck 정답 확인
- * @property onSkip 건너뛰기
- * @property onNext 해설 다음
- * @property onClose 교육 닫기
- */
+/** 카드 탐색, 퀴즈 응답, 교육 닫기에 연결된 기존 동작. */
 data class LearningActions(
     val onPreviousCard: () -> Unit,
     val onNextCard: () -> Unit,
@@ -53,136 +49,110 @@ data class LearningActions(
     val onClose: () -> Unit,
 )
 
-/**
- * 교육·퀴즈 화면. [LearningView]에 따라 카드·문제·해설·결과 중 하나를 그린다. 문구는 문구 ID로만 읽는다.
- *
- * @param view 화면 안쪽 상태
- * @param actions 사용자 동작
- * @param modifier 바깥에서 주는 배치 설정
- */
+/** 교육 흐름에서 받은 표시 모델에 맞춰 카드·문제·해설·복습을 그린다. */
 @Composable
-fun LearningScreen(view: LearningView, actions: LearningActions, modifier: Modifier = Modifier) {
+internal fun LearningScreen(model: LearningScreenModel, actions: LearningActions, modifier: Modifier = Modifier) {
+    val position = when (model) {
+        is LearningScreenModel.Card -> model.number
+        is LearningScreenModel.Question -> model.number
+        is LearningScreenModel.Explanation -> model.number
+        else -> null
+    }
+    key(model::class, position) {
+        VehicleScreen(modifier) {
+            when (model) {
+                is LearningScreenModel.Card -> CardContentView(model, actions)
+                is LearningScreenModel.Question -> QuestionView(model, actions)
+                is LearningScreenModel.Explanation -> ExplanationView(model, actions)
+                is LearningScreenModel.Result -> ResultView(model)
+                LearningScreenModel.Hidden -> Unit
+            }
+            QuietAction(R.string.learn_action_close, actions.onClose)
+        }
+    }
+}
+
+/** 학습 카드와 기존 탐색 버튼을 그린다. */
+@Composable
+private fun CardContentView(model: LearningScreenModel.Card, actions: LearningActions) {
+    Text(stringResource(R.string.learn_card_position, model.number, model.total))
+    ScreenHeading(stringResource(model.title))
+    ScreenSection { Text(stringResource(model.body)) }
+    if (model.startsQuiz) {
+        PrimaryAction(R.string.learn_action_start_quiz, actions.onStartQuiz)
+    } else {
+        PrimaryAction(R.string.learn_action_next, actions.onNextCard)
+    }
+    SecondaryAction(R.string.learn_action_prev, actions.onPreviousCard, enabled = model.hasPrevious)
+}
+
+/** 선택지 전체를 터치할 수 있게 하고, 기존 위치를 선택 동작에 넘긴다. */
+@Composable
+private fun QuestionView(model: LearningScreenModel.Question, actions: LearningActions) {
+    Text(stringResource(R.string.learn_question_position, model.number, model.total))
+    ScreenHeading(stringResource(model.title))
     Column(
-        modifier = modifier.padding(24.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        when (view) {
-            is LearningView.Card -> CardContentView(view, actions)
-            is LearningView.Question -> QuestionView(view, actions)
-            is LearningView.Explanation -> ExplanationView(view, actions)
-            is LearningView.Result -> ResultView(view)
-            LearningView.Hidden -> Unit
-        }
-        TextButton(onClick = actions.onClose) { Text(stringResource(R.string.learn_action_close)) }
-    }
-}
-
-/**
- * 학습 카드. 마지막 카드에서 핵심 퀴즈를 시작한다.
- *
- * @param view 카드 상태
- * @param actions 사용자 동작
- */
-@Composable
-private fun CardContentView(view: LearningView.Card, actions: LearningActions) {
-    Text(stringResource(R.string.learn_card_position, view.number, view.total))
-    Text(text(view.card.texts.title), style = MaterialTheme.typography.titleLarge)
-    Text(text(view.card.texts.body))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = actions.onPreviousCard, enabled = view.hasPrevious) {
-            Text(stringResource(R.string.learn_action_prev))
-        }
-        if (view.isLast) {
-            Button(onClick = actions.onStartQuiz) { Text(stringResource(R.string.learn_action_start_quiz)) }
-        } else {
-            Button(onClick = actions.onNextCard) { Text(stringResource(R.string.learn_action_next)) }
+        model.options.forEachIndexed { index, option ->
+            QuestionOption(option, selected = model.selected == index, onSelect = { actions.onSelect(index) })
         }
     }
+    PrimaryAction(R.string.learn_action_check, actions.onCheck, enabled = model.canCheck)
+    SecondaryAction(R.string.learn_action_skip, actions.onSkip)
 }
 
-/**
- * 문제. 답을 고르기 전에는 정답 확인을 누를 수 없다.
- *
- * @param view 문제 상태
- * @param actions 사용자 동작
- */
+/** 문구가 여러 줄인 경우에도 선택 가능한 영역을 유지한다. */
 @Composable
-private fun QuestionView(view: LearningView.Question, actions: LearningActions) {
-    Text(stringResource(R.string.learn_question_position, view.number, view.total))
-    Text(text(view.question.texts.question), style = MaterialTheme.typography.titleLarge)
-    view.question.texts.options.forEachIndexed { index, option ->
-        val chosen = view.selected == index
+private fun QuestionOption(label: Int, selected: Boolean, onSelect: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) colors.surfaceVariant else colors.surface,
+    ) {
         Row(
-            modifier = Modifier.selectable(selected = chosen, onClick = { actions.onSelect(index) }),
+            modifier = Modifier.fillMaxWidth().heightIn(min = VehicleTargetHeight)
+                .selectable(selected, role = Role.RadioButton, onClick = onSelect).padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            RadioButton(selected = chosen, onClick = { actions.onSelect(index) })
-            Text(text(option))
+            RadioButton(selected = selected, onClick = null)
+            Text(stringResource(label))
         }
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = actions.onCheck, enabled = view.canCheck) { Text(stringResource(R.string.learn_action_check)) }
-        OutlinedButton(onClick = actions.onSkip) { Text(stringResource(R.string.learn_action_skip)) }
-    }
 }
 
-/**
- * 해설. 정답과 해설을 보여 준다.
- *
- * @param view 해설 상태
- * @param actions 사용자 동작
- */
+/** 교육 모델에서 받은 정답과 해설을 표시한다. */
 @Composable
-private fun ExplanationView(view: LearningView.Explanation, actions: LearningActions) {
-    Text(stringResource(R.string.learn_question_position, view.number, view.total))
-    if (view.correct) Text(stringResource(R.string.learn_explain_correct), style = MaterialTheme.typography.titleLarge)
-    val answer = text(correctOption(view.question))
-    Text(stringResource(R.string.learn_explain_answer, answer), style = MaterialTheme.typography.titleMedium)
-    Text(text(view.question.texts.explanation))
-    Button(onClick = actions.onNext) { Text(stringResource(R.string.learn_action_next_question)) }
+private fun ExplanationView(model: LearningScreenModel.Explanation, actions: LearningActions) {
+    Text(stringResource(R.string.learn_question_position, model.number, model.total))
+    if (model.correct) Text(stringResource(R.string.learn_explain_correct), style = MaterialTheme.typography.titleMedium)
+    ScreenHeading(stringResource(R.string.learn_explain_answer, stringResource(model.answer)))
+    ScreenSection { Text(stringResource(model.body)) }
+    PrimaryAction(R.string.learn_action_next_question, actions.onNext)
 }
 
-/**
- * 결과·복습. 응답한 문항 수와 다시 볼 규칙만 보여 준다(점수·합격 표현 없음).
- *
- * @param view 결과 상태
- */
+/** 응답한 문항 수와 복습할 규칙을 보여 준다. */
 @Composable
-private fun ResultView(view: LearningView.Result) {
-    Text(stringResource(R.string.learn_result_title), style = MaterialTheme.typography.titleLarge)
-    Text(stringResource(R.string.learn_result_answered, view.answered, view.total))
+private fun ResultView(model: LearningScreenModel.Result) {
+    ScreenHeading(stringResource(R.string.learn_result_title))
+    Text(stringResource(R.string.learn_result_answered, model.answered, model.total))
     Text(stringResource(R.string.learn_review_title), style = MaterialTheme.typography.titleMedium)
-    if (view.reviewCards.isEmpty()) Text(stringResource(R.string.learn_review_empty))
-    view.reviewCards.forEach { card ->
-        Text(text(card.texts.title), style = MaterialTheme.typography.bodyLarge)
-        Text(text(card.texts.body))
+    if (model.reviewCards.isEmpty()) Text(stringResource(R.string.learn_review_empty))
+    model.reviewCards.forEach { card ->
+        ScreenSection {
+            Text(stringResource(card.title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(card.body))
+        }
     }
 }
 
-/**
- * 문항의 정답 선택지 문구 ID.
- *
- * @param question 문항
- * @return 정답 선택지 문구 ID
- */
-private fun correctOption(question: PlannedQuestion): TextId = question.texts.options[question.correctIndex]
-
-/**
- * 문구 ID를 문장으로 읽는다. 언어는 Android 언어별 리소스가 고른다(10단계에서 대여 언어로 맞춘다).
- *
- * @param id 문구 ID
- * @return 문장
- */
-@Composable
-private fun text(id: TextId): String = stringResource(id.res)
-
-/** 미리보기용 교육 계획(업체 미설정 상황). */
 private val PREVIEW_PLAN = LearningPlan.of(
     CORE_CATALOG,
     LearningSituation(null, null, FuelType.UNKNOWN, HiPassAvailability.UNKNOWN),
 )
-
-/** 미리보기용 빈 동작. */
 private val NO_ACTIONS = LearningActions({}, {}, {}, {}, {}, {}, {}, {})
 
 /** 학습 카드 미리보기. */
@@ -190,16 +160,18 @@ private val NO_ACTIONS = LearningActions({}, {}, {}, {}, {}, {}, {}, {})
 @Composable
 private fun LearningCardPreview() {
     Annyeong_driveTheme {
-        LearningScreen(LearningView.Card(PREVIEW_PLAN.cards[2], 3, PREVIEW_PLAN.cards.size), NO_ACTIONS)
+        val view = LearningView.Card(PREVIEW_PLAN.cards[2], 3, PREVIEW_PLAN.cards.size)
+        LearningScreen(LearningScreenModel.of(view), NO_ACTIONS)
     }
 }
 
-/** 문제 미리보기(답을 고른 상태). */
+/** 선택한 답이 있는 문제 미리보기. */
 @Preview(showBackground = true, heightDp = 700)
 @Composable
 private fun LearningQuestionPreview() {
     Annyeong_driveTheme {
-        LearningScreen(LearningView.Question(PREVIEW_PLAN.questions[1], 2, 5, selected = 1), NO_ACTIONS)
+        val view = LearningView.Question(PREVIEW_PLAN.questions[1], 2, 5, selected = 1)
+        LearningScreen(LearningScreenModel.of(view), NO_ACTIONS)
     }
 }
 
@@ -208,6 +180,7 @@ private fun LearningQuestionPreview() {
 @Composable
 private fun LearningResultPreview() {
     Annyeong_driveTheme {
-        LearningScreen(LearningView.Result(3, 5, PREVIEW_PLAN.cards.take(2)), NO_ACTIONS)
+        val view = LearningView.Result(3, 5, PREVIEW_PLAN.cards.take(2))
+        LearningScreen(LearningScreenModel.of(view), NO_ACTIONS)
     }
 }
