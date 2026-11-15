@@ -32,6 +32,7 @@ import com.annyeongdrive.app.ui.admin.VendorSettingsView
 import com.annyeongdrive.app.setup.PrecheckView
 import com.annyeongdrive.app.ui.AppScreen
 import com.annyeongdrive.app.ui.RentalLanguage
+import com.annyeongdrive.app.ui.WaitingMessage
 import com.annyeongdrive.app.ui.home.DrivingHome
 import com.annyeongdrive.app.ui.home.ParkingWarningScreen
 import com.annyeongdrive.app.ui.learning.LearningAccessModel
@@ -186,7 +187,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
     }
 
     when (AppScreen.of(driveState)) {
-        AppScreen.WAITING -> HomeMessage(messageId, modifier)
+        AppScreen.WAITING -> WaitingMessage(messageId, modifier)
         AppScreen.DRIVING -> DrivingHome(modifier)
         AppScreen.PARKING_WARNING -> ParkingWarningScreen(onAcknowledge = parkingWarning::acknowledge, modifier = modifier)
         AppScreen.LANGUAGE -> LanguageScreen(

@@ -77,3 +77,17 @@ private class LocalizedContext(base: Context, configuration: Configuration) : Co
      */
     override fun getResources(): Resources = localizedResources
 }
+
+/**
+ * 문구 하나를 대여 언어와 상관없이 정한 언어로 읽는다. 언어를 고르기 전 화면에서 여러 언어를 함께 보여 줄 때 쓴다.
+ *
+ * @param line 문구와 언어
+ * @return 그 언어의 문구
+ */
+@Composable
+fun localizedString(line: LocalizedLine): String {
+    val base = LocalContext.current
+    val localized = remember(base, line.language) { localizedContext(base, line.language) }
+    val context = localized ?: base
+    return context.getString(line.textId)
+}

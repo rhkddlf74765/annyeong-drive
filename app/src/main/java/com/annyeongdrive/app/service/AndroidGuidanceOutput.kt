@@ -16,6 +16,7 @@ import com.annyeongdrive.app.guide.GuidanceChannel
 import com.annyeongdrive.app.guide.GuidanceMessage
 import com.annyeongdrive.app.guide.GuidanceOutput
 import com.annyeongdrive.app.guide.GuidanceSentence
+import com.annyeongdrive.app.guide.NotificationLifetime
 import com.annyeongdrive.app.guide.voiceLocaleOf
 import com.annyeongdrive.app.speech.SpeechHub
 import java.util.Locale
@@ -84,7 +85,7 @@ class AndroidGuidanceOutput(context: Context) : GuidanceOutput {
     }
 
     /**
-     * 채널을 만들고 heads-up 알림을 띄운다. 알림 권한이 없으면 띄우지 않는다.
+     * 채널을 만들고 heads-up 알림을 띄운다. 알림 권한이 없으면 띄우지 않는다. 정해진 시간([NotificationLifetime])이 지나면 알림을 지운다.
      *
      * @param channel 알림 종류
      * @param text 알림 문장
@@ -100,6 +101,7 @@ class AndroidGuidanceOutput(context: Context) : GuidanceOutput {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
             .setAutoCancel(true)
+            .setTimeoutAfter(NotificationLifetime.of(channel).toMillis())
             .setContentIntent(openAppIntent())
             .build()
         notifications.notify(nextId, notification)

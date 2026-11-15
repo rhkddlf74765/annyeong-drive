@@ -20,6 +20,7 @@ import com.annyeongdrive.app.rental.AppLanguage
 import com.annyeongdrive.app.setup.FuelGuidance
 import com.annyeongdrive.app.setup.HiPassGuidance
 import com.annyeongdrive.app.setup.PrecheckProgress
+import com.annyeongdrive.app.ui.HeadingBeforeLanguageChoice
 import com.annyeongdrive.app.setup.PrecheckView
 import com.annyeongdrive.app.ui.theme.Annyeong_driveTheme
 import com.annyeongdrive.app.ui.theme.PrimaryAction
@@ -42,7 +43,7 @@ data class PrecheckActions(
 @Composable
 internal fun LanguageScreen(onSelect: (AppLanguage) -> Unit, modifier: Modifier = Modifier) {
     VehicleScreen(modifier) {
-        ScreenHeading(stringResource(R.string.setup_language_title))
+        HeadingBeforeLanguageChoice(R.string.setup_language_title)
         LANGUAGE_OPTIONS.forEach { option ->
             PrimaryAction(option.label, onClick = { onSelect(option.language) })
         }
