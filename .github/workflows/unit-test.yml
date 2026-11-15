@@ -1,4 +1,5 @@
 # JVM 단위 테스트를 자동으로 실행한다. 에뮬레이터는 쓰지 않는다.
+# 신호 시나리오 테스트(signaltest 패키지)는 Signal Test 워크플로가 따로 돌린다(11/15 결정).
 name: Unit Test
 
 on:
@@ -38,7 +39,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 단위 테스트 실행
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest -PtestGroup=unit --stacktrace
 
       # 실패했을 때 어떤 테스트가 왜 실패했는지 내려받아 볼 수 있게 한다.
       - name: 테스트 보고서 올리기

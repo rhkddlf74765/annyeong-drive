@@ -67,4 +67,13 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-}
+}
+// 테스트 묶음 나누기(11/15 결정): -PtestGroup=unit이면 신호 시나리오 테스트(signaltest 패키지)를 빼고, signal이면 그것만 돌린다. 없으면 전부.
+// GitHub Actions는 Unit Test와 Signal Test를 따로 돌린다.
+val testGroup = providers.gradleProperty("testGroup").orNull
+tasks.withType<Test>().configureEach {
+    when (testGroup) {
+        "unit" -> filter.excludeTestsMatching("com.annyeongdrive.app.signaltest.*")
+        "signal" -> filter.includeTestsMatching("com.annyeongdrive.app.signaltest.*")
+    }
+}
