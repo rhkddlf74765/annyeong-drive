@@ -68,12 +68,15 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
-// 테스트 묶음 나누기(11/15 결정): -PtestGroup=unit이면 신호 시나리오 테스트(signaltest 패키지)를 빼고, signal이면 그것만 돌린다. 없으면 전부.
-// GitHub Actions는 Unit Test와 Signal Test를 따로 돌린다.
+// 테스트 묶음 나누기(11/15 결정): -PtestGroup=signal이면 신호 시나리오 테스트(signaltest 패키지)만, ui면 화면 테스트(uitest 패키지)만,
+// unit이면 그 둘을 뺀 나머지를 돌린다. 없으면 전부. GitHub Actions는 Unit Test · Signal Test · UI Test를 따로 돌린다.
 val testGroup = providers.gradleProperty("testGroup").orNull
+val signalTests = "com.annyeongdrive.app.signaltest.*"
+val uiTests = "com.annyeongdrive.app.uitest.*"
 tasks.withType<Test>().configureEach {
     when (testGroup) {
-        "unit" -> filter.excludeTestsMatching("com.annyeongdrive.app.signaltest.*")
-        "signal" -> filter.includeTestsMatching("com.annyeongdrive.app.signaltest.*")
+        "unit" -> filter.excludeTestsMatching(signalTests).excludeTestsMatching(uiTests)
+        "signal" -> filter.includeTestsMatching(signalTests)
+        "ui" -> filter.includeTestsMatching(uiTests)
     }
 }

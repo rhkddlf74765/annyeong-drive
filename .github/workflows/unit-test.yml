@@ -1,5 +1,5 @@
 # JVM 단위 테스트를 자동으로 실행한다. 에뮬레이터는 쓰지 않는다.
-# 신호 시나리오 테스트(signaltest 패키지)는 Signal Test 워크플로가 따로 돌린다(11/15 결정).
+# 신호 시나리오 테스트(signaltest)는 Signal Test, 화면 테스트(uitest)는 UI Test 워크플로가 따로 돌린다(11/15 결정).
 name: Unit Test
 
 on:
