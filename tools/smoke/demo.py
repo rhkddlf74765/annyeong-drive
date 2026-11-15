@@ -59,7 +59,12 @@ class Live:
         while True:
             km = self.replay.sent[-1][1] if self.replay.sent else 0.0
             state = {"km": km, "scene": self.scene, "voice": self.voice}
-            (LIVE_DIR / "state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            try:
+                temp = LIVE_DIR / "state.tmp"
+                temp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+                os.replace(temp, LIVE_DIR / "state.json")
+            except OSError:
+                pass   # 웹 서버가 파일을 읽는 중이면(Windows) 다음 차례에 다시 쓴다. 여기서 멈추면 위치가 움직이지 않는다
             time.sleep(0.5)
 
 
