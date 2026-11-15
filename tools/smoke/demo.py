@@ -90,6 +90,10 @@ def main() -> int:
     """준비를 마치고 Enter를 기다린 뒤 시연 흐름을 진행한다."""
     args = _arguments()
     device = Device()
+    import run_smoke  # 에뮬레이터 켜기·준비 대기를 스모크와 같은 방법으로
+    if run_smoke._ensure_emulator(device):
+        print("에뮬레이터를 켰습니다. 부팅을 기다립니다(2~4분)…", flush=True)
+    run_smoke._wait_ready(device)
     if args.apk:
         print("최종 APK 설치 중…", flush=True)
         device.install(args.apk)
