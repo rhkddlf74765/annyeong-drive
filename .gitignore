@@ -32,3 +32,7 @@ docs/reference/
 # 스모크 실행 결과(로컬)
 tools/smoke/out/
 __pycache__/
+
+# 서명 키는 저장소에 넣지 않는다
+*.jks
+*.keystore
