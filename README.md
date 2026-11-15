@@ -8,7 +8,7 @@
 
 | 항목 | 값 |
 | --- | --- |
-| APK | [`release/annyeong-drive-1.0.apk`](release/annyeong-drive-1.0.apk) (release 빌드, 정식 키 서명) |
+| APK | [`apk/AnnyeongDrive_AnnyeongDrive_release.apk`](apk/AnnyeongDrive_AnnyeongDrive_release.apk) (release 빌드, 정식 키 서명) |
 | APK SHA-256 | `B8141FDF0F466881EB46F64D6F4D65E0348F688CCA5187D4E03BFEBE44CBA18A` |
 | APK를 빌드한 코드 | `main` · `6792368e4c939c9ffcf01055d3b8bc08cf6ed1f5` |
 | 시연용 관리자 코드 | `Demo2026` (처음 쓰는 기기에서 업체 설정으로 직접 정한다) |
@@ -28,7 +28,7 @@
 1. Android Studio Device Manager에서 Pleos Connect v2.1.0 에뮬레이터를 켠다.
 2. APK를 설치한다.
    ```
-   adb install -r release/annyeong-drive-1.0.apk
+   adb install -r apk/AnnyeongDrive_AnnyeongDrive_release.apk
    ```
 3. 에뮬레이터 앱 목록에서 **Annyeong_drive**를 연다. 권한 창에서 모두 **허용**한다.
    - 위치, 알림, Pleos 위치·음성 권한, 차속 권한(`android.car.permission.CAR_SPEED`, 권한 창에 "알 수 없는 작업"으로 보인다).
@@ -61,7 +61,7 @@ python tools/gpx_replay.py replay tools/route.gpx --kmh 50
 ```
 
 - 정차할 때는 차속 0을 넣고 멈춘 것을 확인한 뒤(1~2초) 기어 P를 넣는다.
-- 한 번에 시연 흐름(대여 → 점검 → 교육 → 주행 안내 → 정차 → 반납)을 진행하려면 `python tools/smoke/demo.py --apk release/annyeong-drive-1.0.apk` (에뮬레이터를 켜고 가상 콘솔·GPX를 자동으로 넣는다. 브라우저 `http://127.0.0.1:18090/live.html`에 경로와 현재 위치·안내 문장을 표시).
+- 한 번에 시연 흐름(대여 → 점검 → 교육 → 주행 안내 → 정차 → 반납)을 진행하려면 `python tools/smoke/demo.py --apk apk/AnnyeongDrive_AnnyeongDrive_release.apk` (에뮬레이터를 켜고 가상 콘솔·GPX를 자동으로 넣는다. 브라우저 `http://127.0.0.1:18090/live.html`에 경로와 현재 위치·안내 문장을 표시).
 
 ## 주요 기능
 
