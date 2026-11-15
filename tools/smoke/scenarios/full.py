@@ -94,8 +94,11 @@ def korean_rental(step):
     step.check(bool(warning) and warning[-1].text == expected.stop_joined(), "경로 끝 경고 알림")
     step.action("확인 → 반납")
     app.screen.tap("parking_warning_acknowledge")
+    app.covered_taps.clear()
     app.return_car()
     step.check(app.current() == "WAITING", "반납 뒤 대기 화면")
+    if app.covered_taps:
+        step.result(f"주의(사용성): 주정차 경고 알림이 화면 위에 남아 버튼을 가림 → 버튼 가장자리를 눌러 진행: {app.covered_taps}")
 
 
 @scenario("E3", "full", "교육 중 출발했다 정차한 뒤 앱을 껐다 켜도 대여와 교육 진행이 남아 이어 볼 수 있다",

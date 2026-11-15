@@ -39,6 +39,7 @@ class App:
         self.console = console
         self.strings = strings
         self.screen = Screen(device, strings)
+        self.covered_taps: list[str] = []   # 알림이 가려 가운데를 누를 수 없었던 버튼(사용성 문제로 보고)
 
     # ── 읽기 ─────────────────────────────────────────────
 
@@ -219,6 +220,20 @@ class App:
         if not self.wait_screen("PARKED_HOME", 15):
             raise AssertionError(f"정차 대기로 가지 못함: {self.current()}")
 
+    def tap_left_edge(self, string_id: str) -> None:
+        """버튼의 왼쪽 끝을 누른다. 위에 뜬 알림이 버튼 가운데를 가릴 때 쓴다(가린 사실은 covered_taps에 남는다)."""
+        node = self.screen.find(string_id)
+        if node is None:
+            raise AssertionError(f"화면에 '{string_id}' 문구가 없음")
+        x1, y1, _, y2 = node.bounds
+        self.device.tap(x1 + 4, (y1 + y2) // 2)
+        time.sleep(1.0)
+
+    def dismiss_heads_up(self) -> None:
+        """화면 위쪽에 떠 있는 알림(heads-up)을 위로 밀어 치운다. 한국어 대여의 주정차 경고 알림이 남아 반납 버튼을 가린다(11/15 스모크 확인)."""
+        self.device.shell("input swipe 1280 150 1280 0 200", check=False)
+        time.sleep(1.0)
+
     def enter_code(self, code: str) -> None:
         """관리자 코드 칸을 비우고 코드를 넣은 뒤 확인을 누른다."""
         self.screen.tap("admin_code_label")
@@ -230,8 +245,16 @@ class App:
     def return_car(self, code: str = ADMIN_CODE) -> None:
         """정차 대기에서 반납을 열고 관리자 코드로 반납을 마친다. 대기 화면까지 기다린다."""
         self.to_parked_home()
-        self.screen.tap("action_return")
-        if not self.wait_screen("RETURN", 15):
+        for _ in range(2):
+            self.dismiss_heads_up()
+            self.screen.tap("action_return")
+            if self.wait_screen("RETURN", 8):
+                break
+        if self.current() != "RETURN":
+            self.covered_taps.append("action_return")
+            self.tap_left_edge("action_return")
+            self.wait_screen("RETURN", 8)
+        if self.current() != "RETURN":
             raise AssertionError(f"반납 화면이 아님: {self.current()}")
         self.enter_code(code)
         if not self.wait_screen("WAITING", 20):

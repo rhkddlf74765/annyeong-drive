@@ -77,7 +77,10 @@ _CREATED = re.compile(r"mCreationTimeMs=(?P<ms>\d+)")
 
 
 def parse_notifications(dump: str, package: str) -> list[Notification]:
-    """dumpsys notification --noredact 출력에서 그 앱의 알림을 뽑는다. 묶음(ranker_group) 알림은 뺀다. 오래된 것부터."""
+    """dumpsys notification --noredact 출력에서 그 앱의 알림을 뽑는다. 묶음(ranker_group) 알림은 뺀다. 띄운 순서(알림 ID 순)로.
+
+    만든 시각(mCreationTimeMs)은 시스템이 알림을 묶을 때 바뀔 수 있어(11/15 스모크 확인) 순서에 쓰지 않는다. 앱은 알림 ID를 띄울 때마다 1씩 올린다.
+    """
     found: dict[int, Notification] = {}
     current = None
     for line in dump.splitlines():
@@ -96,7 +99,7 @@ def parse_notifications(dump: str, package: str) -> list[Notification]:
             if current["keep"]:
                 found[current["id"]] = Notification(current["id"], current["channel"], current["text"], current["created"])
             current = None
-    return sorted(found.values(), key=lambda n: (n.created_ms, n.id))
+    return sorted(found.values(), key=lambda n: n.id)
 
 
 def _start(record: re.Match, package: str) -> dict:
