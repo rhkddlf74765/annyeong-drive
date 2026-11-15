@@ -1,0 +1,60 @@
+{
+  "description": "시연 경로(tools/route.gpx)를 50km/h, 1초 간격으로 달릴 때 영어 대여에서 나와야 하는 안내. 11/15 에뮬레이터 확인 목록. JVM(RouteGuidanceSignalTest)과 스모크(E1)가 함께 쓴다. atKm은 경로 시작부터 안내가 나오는 위치(km, JVM 재생 기준). 스모크는 실제 앱의 위치를 이 값과 비교한다.",
+  "route": "tools/route.gpx",
+  "kmh": 50,
+  "language": "en",
+  "spoken": true,
+  "announcements": [
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "Speed camera ahead. Limit 50 kilometers per hour.",
+        "Tickets go to the rental company and may be charged to you later."
+      ],
+      "atKm": 0.01
+    },
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "Speed camera ahead. Limit 50 kilometers per hour."
+      ],
+      "atKm": 0.82
+    },
+    {
+      "rule": "SCHOOL_ZONE",
+      "sentences": [
+        "School zone. Speed limit 30 kilometers per hour.",
+        "Children cross here, and fines are higher."
+      ],
+      "atKm": 1.58
+    },
+    {
+      "rule": "SCHOOL_ZONE",
+      "sentences": [
+        "School zone. Speed limit 30 kilometers per hour."
+      ],
+      "atKm": 2.33
+    },
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "School zone camera ahead. Limit 30 kilometers per hour."
+      ],
+      "atKm": 2.52
+    },
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "School zone camera ahead. Limit 30 kilometers per hour."
+      ],
+      "atKm": 2.91
+    }
+  ],
+  "stopAtEnd": {
+    "rule": "PARKING_CAMERA",
+    "sentences": [
+      "Parking enforcement area nearby. Check the signs for allowed times and exceptions.",
+      "Parking fines go to the rental company and may be charged to you later."
+    ]
+  }
+}

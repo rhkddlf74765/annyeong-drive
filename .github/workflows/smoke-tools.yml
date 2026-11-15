@@ -1,0 +1,33 @@
+# 스모크 도구(tools/smoke)의 기기 없이 도는 부분을 확인한다(11/15 결정). 에뮬레이터는 쓰지 않는다.
+# 화면 구조·문구 ID 찾기, 음성 로그·알림 해석, 기대 목록 파일 형식, 시나리오 등록과 문구 ID가 strings.xml에 있는지.
+# 실제 스모크(에뮬레이터)는 Pleos 에뮬레이터 이미지가 필요해 로컬에서 run_smoke.py로 돌린다.
+name: Smoke Tools
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-tools-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke-tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 저장소 가져오기
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 스모크 도구 테스트 실행
+        working-directory: tools/smoke
+        run: python -m unittest discover -s tests -t . -v
