@@ -64,8 +64,19 @@ class Device:
         return self._user
 
     def install(self, apk: Path) -> None:
-        """APK를 설치(덮어쓰기)한다."""
-        self.adb("install", "-r", str(apk), timeout=300)
+        """APK를 설치(덮어쓰기)한다. 서명 키가 다른 앱이 깔려 있으면(디버그 키 ↔ 정식 키) 지우고 다시 설치한다."""
+        out = self._install_output("-r", str(apk))
+        if "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in out or "signatures do not match" in out:
+            self.adb("uninstall", paths.PACKAGE, check=False)
+            out = self._install_output(str(apk))
+        if "Success" not in out:
+            raise RuntimeError(f"설치 실패: {out.strip()[-300:]}")
+
+    def _install_output(self, *args: str) -> str:
+        """adb install을 실행하고 표준 출력과 오류 출력을 합쳐 돌려준다(실패 이유는 오류 출력에 나온다)."""
+        command = [paths.adb()] + (["-s", self.serial] if self.serial else []) + ["install", *args]
+        done = subprocess.run(command, capture_output=True, timeout=300)
+        return (done.stdout + done.stderr).decode("utf-8", errors="replace")
 
     def clear_data(self) -> None:
         """앱 데이터를 모두 지운다(대여·업체 설정 포함)."""
