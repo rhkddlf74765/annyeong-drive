@@ -56,6 +56,9 @@ def main() -> int:
             device.install(apk)
         console.start()
         app = App(device, console, Strings(paths.RES))
+        if args.screenshots:
+            app.shots_dir = out / "screens"
+            app.shots_dir.mkdir(exist_ok=True)
         set_app(app)
         for item in chosen:
             results.append(run_one(item, app, lambda failed: _save_failure(device, out, failed.sid)))
@@ -77,6 +80,7 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--skip-install", action="store_true", help="설치하지 않고 이미 깔린 앱으로")
     parser.add_argument("--keep-emulator", action="store_true", help="끝나도 에뮬레이터를 끄지 않음")
     parser.add_argument("--serial", help="기기 번호(예: emulator-5554)")
+    parser.add_argument("--screenshots", action="store_true", help="화면마다 언어별로 스크린샷을 남김(out/…/screens)")
     return parser.parse_args()
 
 

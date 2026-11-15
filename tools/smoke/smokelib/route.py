@@ -83,6 +83,7 @@ class Replay:
         points = gpx.densify(gpx.load_points(str(paths.REPO / route)), self.speed_mps)
         self.points = [(p, d / 1000) for p, d in points if until_km is None or d / 1000 <= until_km]
         self.sent: list[tuple[float, float]] = []
+        self.error: str = ""
         self._thread: threading.Thread | None = None
         self._stop = False
 
@@ -107,25 +108,51 @@ class Replay:
         self._thread.start()
 
     def _run(self) -> None:
-        """점마다 정해진 시각에 위치를 보낸다."""
+        """점마다 정해진 시각에 위치를 보낸다. 한 점을 보내지 못하면 몇 번 다시 보내고, 끝내 못 보내면 오류를 남기고 멈춘다."""
         t0 = time.monotonic()
         for (lat, lon), km in self.points:
             if self._stop:
                 return
             target = t0 + km * 1000 / self.speed_mps
             time.sleep(max(0.0, target - time.monotonic()))
-            self.device.geo_fix(lat, lon)
+            if not self._send(lat, lon):
+                self.error = f"{km:.2f}km 지점 위치를 보내지 못함"
+                return
             self.sent.append((time.time(), km))
 
+    def _send(self, lat: float, lon: float) -> bool:
+        """위치 하나를 보낸다. 실패하면 1초 쉬고 최대 3번 더 보낸다."""
+        for _ in range(4):
+            try:
+                self.device.geo_fix(lat, lon)
+                return True
+            except Exception:  # noqa: BLE001 - 에뮬레이터 콘솔이 잠깐 막혀도 재생을 이어 간다
+                time.sleep(1)
+        return False
+
+    def wait_until_km(self, km: float, timeout: float) -> None:
+        """재생이 그 지점(km)을 지날 때까지 기다린다. 재생이 멈췄거나 시간이 지나면 실패."""
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self.sent and self.sent[-1][1] >= km:
+                return
+            if self.error or (self._thread is not None and not self._thread.is_alive()):
+                raise AssertionError(f"위치 재생이 {km}km 전에 멈춤: {self.error or '재생 끝'}")
+            time.sleep(1)
+        raise AssertionError(f"위치 재생이 {timeout:.0f}초 안에 {km}km에 닿지 않음")
+
     def wait(self) -> None:
-        """재생이 끝날 때까지 기다린다."""
+        """재생이 끝날 때까지 기다린다. 중간에 멈췄으면 실패."""
         if self._thread:
             self._thread.join()
+        if self.error:
+            raise AssertionError(f"위치 재생 실패: {self.error}")
 
     def stop(self) -> None:
-        """재생을 멈춘다."""
+        """재생을 멈춘다(오류가 있어도 던지지 않는다)."""
         self._stop = True
-        self.wait()
+        if self._thread:
+            self._thread.join()
 
     def km_at(self, epoch: float) -> float | None:
         """그 시각(초)에 마지막으로 보낸 위치(km). 재생 전이면 None."""

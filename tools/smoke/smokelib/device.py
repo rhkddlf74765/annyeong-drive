@@ -16,7 +16,8 @@ PERMISSIONS = (
 )
 CALL_NUMBER = "01012345678"
 ADB_RETRIES = 4
-_SERVER_RESTART = ("daemon not running", "cannot connect to daemon", "failed to start daemon", "device offline")
+_SERVER_RESTART = ("daemon not running", "cannot connect to daemon", "failed to start daemon", "device offline",
+                   "could not connect to TCP port")  # 마지막은 에뮬레이터 콘솔 포트가 잠깐 막힌 경우(geo·gsm, 11/15 확인)
 
 
 class Device:

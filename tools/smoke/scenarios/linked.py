@@ -193,10 +193,12 @@ def call_while_driving(step):
         step.action("출발 → 경로 앞부분 재생(1.0km까지 통화 중)")
         app.drive_off(expected.kmh)
         replay.start()
-        while not replay.sent or replay.sent[-1][1] < 1.0:
-            time.sleep(1)
+        replay.wait_until_km(1.0, timeout=replay.duration_s + 60)
         during_call = spoken(app.speech())
         notes = [n.text for n in app.notifications("road_rule")]
+    except Exception:
+        replay.stop()   # 실패하면 위치 재생을 멈춰 다음 시나리오에 위치가 섞이지 않게 한다
+        raise
     finally:
         app.device.call_end()
     step.action("통화 종료 → 1.75km까지 재생")

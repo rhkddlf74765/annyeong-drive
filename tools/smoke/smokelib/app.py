@@ -40,6 +40,9 @@ class App:
         self.strings = strings
         self.screen = Screen(device, strings)
         self.covered_taps: list[str] = []   # 알림이 가려 가운데를 누를 수 없었던 버튼(사용성 문제로 보고)
+        self.shots_dir = None                # 정하면 화면마다 언어별로 처음 한 번 스크린샷을 남긴다
+        self.language = "ko"
+        self._shot: set[str] = set()
 
     # ── 읽기 ─────────────────────────────────────────────
 
@@ -56,9 +59,19 @@ class App:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             if self.current() == name:
+                self._screenshot_once(name)
                 return True
             time.sleep(0.8)
         return False
+
+    def _screenshot_once(self, name: str) -> None:
+        """스크린샷을 켰으면 그 화면을 대여 언어별로 처음 한 번 남긴다(화면 검토용)."""
+        key = f"{self.language}_{name}"
+        if self.shots_dir is None or key in self._shot:
+            return
+        self._shot.add(key)
+        time.sleep(0.8)
+        self.device.screenshot(self.shots_dir / f"{key}.png")
 
     def wait_parked(self, timeout: float = 15) -> str:
         """정차 화면(정차 대기·교육 시작 제안·이어서 확인할까요) 중 하나가 될 때까지 기다린다. 그 화면 이름(아니면 지금 화면)."""
@@ -118,6 +131,7 @@ class App:
         self.console.seat(True)
         if not self.wait_screen("LANGUAGE", 20):
             raise AssertionError(f"앉은 뒤 언어 선택이 아님: {self.current()}")
+        self.language = language
         self.screen.tap(LANGUAGE_BUTTONS[language])
         if not self.wait_screen("PRECHECK", 20):
             raise AssertionError(f"언어를 고른 뒤 점검 화면이 아님: {self.current()}")

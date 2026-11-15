@@ -42,9 +42,25 @@ class Console:
                 time.sleep(2)
         else:
             raise RuntimeError("가상 콘솔(8088)이 응답하지 않음")
+        self._wait_vehicle_ready()
         self._running = True
         self._thread = threading.Thread(target=self._keep_alive, daemon=True)
         self._thread.start()
+
+    def _wait_vehicle_ready(self, timeout: float = 240) -> None:
+        """차량 명령(기어 P)이 받아들여질 때까지 기다린다. 부팅 직후나 다른 클라이언트(열어 둔 브라우저 콘솔)가 잡고 있으면 503이 온다."""
+        deadline = time.monotonic() + timeout
+        last = ""
+        while time.monotonic() < deadline:
+            try:
+                self._request("POST", "/browser/session", {"client": self.client})
+                self._request("PUT", "/vehicle/gear", {"gear": GEARS["P"]})
+                print("가상 콘솔 준비됨", flush=True)
+                return
+            except OSError as error:
+                last = str(error)
+                time.sleep(5)
+        raise RuntimeError(f"가상 콘솔이 차량 명령을 받지 않음({last}). 브라우저에 열어 둔 콘솔이 있으면 닫아 주세요.")
 
     def stop(self) -> None:
         """세션 유지를 멈춘다."""
