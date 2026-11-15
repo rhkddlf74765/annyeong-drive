@@ -36,7 +36,7 @@ LANGUAGE_BUTTONS = {"en": "language_english", "ko": "language_korean"}
 class App:
     """에뮬레이터의 release 앱 하나를 조작한다."""
 
-    def __init__(self, device: Device, console: Console, strings: Strings):
+    def __init__(self, device: Device, console: Console, strings: Strings, record_notifications: bool = True):
         self.device = device
         self.console = console
         self.strings = strings
@@ -45,7 +45,8 @@ class App:
         self.shots_dir = None                # 정하면 화면마다 언어별로 처음 한 번 스크린샷을 남긴다
         self._posted: dict[int, Notification] = {}   # 앱을 연 뒤 한 번이라도 뜬 알림(알림은 8·10초 뒤 지워지므로 뜰 때 모아 둔다)
         self._lock = threading.Lock()
-        threading.Thread(target=self._record_notifications, daemon=True).start()
+        if record_notifications:   # 시연(demo.py)에서는 끈다: adb 호출이 많아 위치 재생이 밀린다(11/15 리허설)
+            threading.Thread(target=self._record_notifications, daemon=True).start()
         self.language = "ko"
         self._shot: set[str] = set()
 
