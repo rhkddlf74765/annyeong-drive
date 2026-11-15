@@ -1,0 +1,60 @@
+{
+  "description": "시연 경로(tools/route.gpx)를 50km/h, 1초 간격으로 달릴 때 한국어 대여에서 나와야 하는 안내. 음성 없이 알림으로만 나온다. JVM(RouteGuidanceSignalTest)과 스모크(E2)가 함께 쓴다. atKm은 경로 시작부터 안내가 나오는 위치(km, JVM 재생 기준). 스모크는 실제 앱의 위치를 이 값과 비교한다.",
+  "route": "tools/route.gpx",
+  "kmh": 50,
+  "language": "ko",
+  "spoken": false,
+  "announcements": [
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "앞에 과속 단속 카메라가 있어요. 제한속도 50 km/h.",
+        "단속되면 고지서가 렌터카 업체로 가고 나중에 청구될 수 있어요."
+      ],
+      "atKm": 0.01
+    },
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "앞에 과속 단속 카메라가 있어요. 제한속도 50 km/h."
+      ],
+      "atKm": 0.82
+    },
+    {
+      "rule": "SCHOOL_ZONE",
+      "sentences": [
+        "어린이보호구역이에요. 제한속도 30 km/h.",
+        "아이들이 길을 건너는 곳이라 위반하면 과태료가 더 커요."
+      ],
+      "atKm": 1.58
+    },
+    {
+      "rule": "SCHOOL_ZONE",
+      "sentences": [
+        "어린이보호구역이에요. 제한속도 30 km/h."
+      ],
+      "atKm": 2.33
+    },
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "앞에 어린이보호구역 단속 카메라가 있어요. 제한속도 30 km/h."
+      ],
+      "atKm": 2.52
+    },
+    {
+      "rule": "SPEED_CAMERA",
+      "sentences": [
+        "앞에 어린이보호구역 단속 카메라가 있어요. 제한속도 30 km/h."
+      ],
+      "atKm": 2.91
+    }
+  ],
+  "stopAtEnd": {
+    "rule": "PARKING_CAMERA",
+    "sentences": [
+      "주정차 단속 구역 근처예요. 표지판에서 주정차 가능 시간과 예외를 확인해 주세요.",
+      "단속되면 과태료가 렌터카 업체를 거쳐 청구될 수 있어요."
+    ]
+  }
+}

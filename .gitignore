@@ -28,3 +28,7 @@ docs/reference/
 
 # Kotlin 컴파일러 캐시
 .kotlin/
+
+# 스모크 실행 결과(로컬)
+tools/smoke/out/
+__pycache__/

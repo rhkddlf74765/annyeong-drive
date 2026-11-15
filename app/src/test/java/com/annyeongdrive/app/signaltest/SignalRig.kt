@@ -9,6 +9,8 @@ import com.annyeongdrive.app.drive.FakeRentalStatus
 import com.annyeongdrive.app.drive.FakeRoadRules
 import com.annyeongdrive.app.drive.FakeStopPlaces
 import com.annyeongdrive.app.drive.FeatureFlags
+import com.annyeongdrive.app.drive.RoadRuleWatcher
+import com.annyeongdrive.app.drive.StopPlaceLookup
 import com.annyeongdrive.app.drive.VehicleSnapshot
 import com.annyeongdrive.app.drive.state.DriveState
 import com.annyeongdrive.app.gear.CarGearSource
@@ -36,8 +38,15 @@ import com.annyeongdrive.app.vehicle.pleos.PleosSeatBeltSource
  * 신호 시나리오 테스트 장치. release와 같은 실제 어댑터(기어·착좌·안전띠·차속)에 가짜 SDK를 붙이고,
  * 실제 엔진·Coordinator·안내(통화 중 알림만 포함)까지 이어 붙인다. 테스트는 SDK 값만 바꾸고 상태와 출력을 확인한다.
  * 대여·교육 상태, 주정차 구역, 규칙 안내 위치는 Coordinator 테스트와 같은 가짜를 쓴다.
+ * 경로 주행 시나리오는 실제 구역 판단(ZoneRoadRuleWatcher·ZoneStopPlaces)을 넣어 쓴다.
+ *
+ * @param roadRuleWatcher 규칙 안내 위치 판단. null이면 가짜([roadRules])
+ * @param stopPlaceLookup 주정차 구역 조회. null이면 가짜([stopPlaces])
  */
-class SignalRig {
+class SignalRig(
+    roadRuleWatcher: RoadRuleWatcher? = null,
+    stopPlaceLookup: StopPlaceLookup? = null,
+) {
 
     /** 가짜 SDK 기어. */
     val gear = FakePleosGear()
@@ -105,10 +114,10 @@ class SignalRig {
                 vehicle = VehicleSnapshot.UNKNOWN,
                 rental = rental,
                 learning = learning,
-                stopPlaces = stopPlaces,
+                stopPlaces = stopPlaceLookup ?: stopPlaces,
                 flags = FeatureFlags(),
                 returnGate = AlwaysPassReturnGate(),
-                roadRules = roadRules,
+                roadRules = roadRuleWatcher ?: roadRules,
             ),
         ),
         sources = DriveSignalSources(
