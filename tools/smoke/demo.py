@@ -11,6 +11,9 @@
 import argparse
 import sys
 import threading
+import functools
+import http.server
+import json
 import time
 from pathlib import Path
 
@@ -27,6 +30,46 @@ from smokelib.screen import Strings  # noqa: E402
 PAUSE_SHORT = 2.5
 PAUSE = 4.0
 PAUSE_LONG = 6.0
+LIVE_PORT = 18090
+LIVE_DIR = paths.OUT / "demo"
+
+
+class Live:
+    """브라우저 경로 화면(live.html)에 보여 줄 상태: 경로 위치(km), 지금 장면, 방금 나온 안내 문장. 0.5초마다 state.json으로 쓴다."""
+
+    def __init__(self, replay):
+        self.replay = replay
+        self.scene = "대기 중"
+        self.voice = ""
+
+    def start(self) -> None:
+        """경로 화면 파일을 만들고, 웹 서버와 상태 쓰기를 시작한다."""
+        import route_map
+        LIVE_DIR.mkdir(parents=True, exist_ok=True)
+        (LIVE_DIR / "live.html").write_text(route_map.live_page(), encoding="utf-8")
+        handler = functools.partial(_QuietHandler, directory=str(LIVE_DIR))
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", LIVE_PORT), handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        threading.Thread(target=self._write_loop, daemon=True).start()
+        print(f"경로 화면: 브라우저에서 http://127.0.0.1:{LIVE_PORT}/live.html 를 여세요", flush=True)
+
+    def _write_loop(self) -> None:
+        """0.5초마다 상태를 파일로 쓴다."""
+        while True:
+            km = self.replay.sent[-1][1] if self.replay.sent else 0.0
+            state = {"km": km, "scene": self.scene, "voice": self.voice}
+            (LIVE_DIR / "state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            time.sleep(0.5)
+
+
+class _QuietHandler(http.server.SimpleHTTPRequestHandler):
+    """요청 기록을 터미널에 찍지 않는 웹 서버."""
+
+    def log_message(self, *args) -> None:
+        """기록하지 않는다."""
+
+
+LIVE = None
 
 
 class Clock:
@@ -36,9 +79,11 @@ class Clock:
         self.start = time.monotonic()
 
     def scene(self, text: str) -> None:
-        """장면 이름을 경과 시간과 함께 찍는다."""
+        """장면 이름을 경과 시간과 함께 찍고 경로 화면에도 보낸다."""
         elapsed = int(time.monotonic() - self.start)
         print(f"[{elapsed // 60:02d}:{elapsed % 60:02d}] {text}", flush=True)
+        if LIVE is not None and not text.startswith("   ♪"):
+            LIVE.scene = text.strip()
 
 
 def main() -> int:
@@ -53,8 +98,17 @@ def main() -> int:
     app = App(device, console, Strings(paths.RES), record_notifications=False)
     expected = load_expectation("route_en.json")
     replay = Replay(device, expected.route, expected.kmh)
+    global LIVE
+    LIVE = Live(replay)
+    LIVE.start()
     try:
-        _prepare(app, replay)
+        if not args.skip_prepare:
+            _prepare(app, replay)
+        if args.manual:
+            device.shell("settings put system show_touches 1", check=False)
+            _manual(app, replay)
+            print("\n시연 끝. 녹화를 멈추세요.", flush=True)
+            return 0
         if not args.no_wait:
             input("\n준비 완료. 녹화를 시작한 뒤 Enter를 누르세요. ")
         _demo(app, replay, args.map, not args.app_during_drive)
@@ -72,6 +126,8 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--map", help="주행 중 앞에 띄울 화면(패키지/액티비티). 없으면 홈 화면(차속·기어 표시)")
     parser.add_argument("--app-during-drive", action="store_true", help="주행 중에도 앱 화면을 둔다(시스템이 가림)")
     parser.add_argument("--no-wait", action="store_true", help="Enter를 기다리지 않음(리허설)")
+    parser.add_argument("--manual", action="store_true", help="화면은 사람이 직접 누르고, 스크립트는 차량 신호만 넣는다(Enter로 단계 진행)")
+    parser.add_argument("--skip-prepare", action="store_true", help="준비(업체 코드·반납)를 건너뜀(이미 대기 화면일 때)")
     return parser.parse_args()
 
 
@@ -167,6 +223,35 @@ def _demo(app: App, replay: Replay, map_activity: str | None, leave_app: bool) -
     time.sleep(PAUSE)
 
 
+def _manual(app: App, replay: Replay) -> None:
+    """사람이 화면을 누르는 시연. 스크립트는 Enter를 받을 때마다 차량 신호(착좌·기어·차속·GPX)만 넣는다."""
+    print("\n[직접 조작 모드] 화면은 마우스로 직접 누르세요. 차량 신호는 Enter를 누르면 넣습니다.", flush=True)
+    input("\n① 녹화를 시작한 뒤 Enter → 운전석에 앉습니다(가상 콘솔). ")
+    clock = Clock()
+    clock.scene("운전석 착좌 [입력: 가상 콘솔]")
+    app.console.seat(True)
+    print("\n   지금 직접 하세요: English → 안전띠 확인 체크 → 점검 마침 → 교육 시작 → 카드 넘기기 → 핵심 퀴즈 → 답 고르기 → 정답 확인 → 다음", flush=True)
+    input("\n② 퀴즈 문제 화면에서 Enter → 출발합니다(D·50km/h) + 시연 경로 주행(약 4분 30초, 자동). ")
+    clock.scene("출발 [입력: 가상 콘솔 D·50km/h]")
+    app.device.logcat_clear()
+    app.console.drive(replay.speed_mps * 3.6)
+    time.sleep(PAUSE)
+    clock.scene(f"시연 경로 주행 [입력: GPX 재생, 약 {replay.duration_s / 60:.0f}분] — 손대지 마세요")
+    watcher = _SpeechWatcher(app, clock)
+    watcher.start()
+    replay.start()
+    replay.wait()
+    clock.scene("경로 끝 정차 [입력: 가상 콘솔 0km/h → P] → 주정차 확인 안내")
+    app.stop_and_park()
+    time.sleep(PAUSE_LONG)
+    watcher.stop()
+    print("\n   지금 직접 하세요: 확인했어요 → (이어서 확인할까요) 이어 보기 → 교육 닫기 → 반납 완료 → 관리자 코드 Demo2026 → 확인", flush=True)
+    input("\n③ 대기 화면이 되면 Enter → 운전석을 비웁니다(다음 손님 대기). ")
+    clock.scene("운전석 비움 [입력: 가상 콘솔]")
+    app.console.seat(False)
+    time.sleep(PAUSE)
+
+
 class _SpeechWatcher:
     """주행 중 안내 음성이 나오면 경과 시간과 문장을 찍는다(편집할 때 원래 속도로 둘 구간)."""
 
@@ -197,7 +282,9 @@ class _SpeechWatcher:
                 if key not in self._seen:
                     self._seen.add(key)
                     self.clock.scene(f"   ♪ 안내 음성: {event.text}")
-            time.sleep(5)
+                    if LIVE is not None:
+                        LIVE.voice = event.text
+            time.sleep(2)
 
 
 if __name__ == "__main__":

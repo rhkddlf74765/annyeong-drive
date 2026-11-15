@@ -65,8 +65,52 @@ def svg() -> str:
         parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="10" fill="{color}" stroke="white" stroke-width="3"/>'
                      f'<text x="{x + 16:.1f}" y="{y + 6:.1f}" font-size="20" font-weight="700" fill="{color}">{label}</text>')
     parts.append(_legend(expected))
+    parts.append('<circle id="car" cx="-50" cy="-50" r="13" fill="#e53e3e" stroke="white" stroke-width="4"/>')
     parts.append("</svg>")
     return "\n".join(parts)
+
+
+def track() -> list[list[float]]:
+    """경로를 따라 [시작부터 km, 그림 x, 그림 y] 목록(현재 위치 점을 움직일 때 쓴다)."""
+    gpx = _gpx_replay()
+    expected = load_expectation("route_en.json")
+    points = gpx.densify(gpx.load_points(str(paths.REPO / expected.route)), 10)
+    project = _projector([p for p, _ in points])
+    return [[round(d / 1000, 4), *[round(v, 1) for v in project(lat, lon)]] for (lat, lon), d in points]
+
+
+def live_page() -> str:
+    """주행 중 현재 위치와 방금 나온 안내 문장을 보여 주는 HTML. state.json(시연 스크립트가 0.5초마다 씀)을 읽는다."""
+    return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>Annyeong Drive · 시연 경로</title>
+<style>
+body{{margin:0;background:#f7f7f5;font-family:"Malgun Gothic","Segoe UI",sans-serif}}
+#map svg{{width:100vw;height:auto;max-height:82vh;display:block}}
+#bar{{position:fixed;left:0;right:0;bottom:0;padding:18px 28px;background:#1a202c;color:white;min-height:64px}}
+#scene{{font-size:18px;color:#cbd5e0}}#voice{{font-size:28px;font-weight:700;margin-top:6px}}#km{{float:right;font-size:22px}}
+</style></head><body>
+<div id="map">{svg()}</div>
+<div id="bar"><span id="km">0.00 km</span><div id="scene">대기 중</div><div id="voice"></div></div>
+<script>
+const TRACK = {json.dumps(track())};
+function at(km) {{
+  let i = TRACK.findIndex(p => p[0] >= km);
+  if (i <= 0) return i === 0 ? TRACK[0] : TRACK[TRACK.length - 1];
+  const a = TRACK[i - 1], b = TRACK[i], t = (km - a[0]) / Math.max(b[0] - a[0], 1e-9);
+  return [km, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}}
+async function tick() {{
+  try {{
+    const s = await (await fetch('state.json?' + Date.now())).json();
+    const p = at(s.km);
+    const car = document.getElementById('car');
+    car.setAttribute('cx', p[1]); car.setAttribute('cy', p[2]);
+    document.getElementById('km').textContent = s.km.toFixed(2) + ' km';
+    document.getElementById('scene').textContent = s.scene || '';
+    document.getElementById('voice').textContent = s.voice ? '♪ ' + s.voice : '';
+  }} catch (e) {{}}
+}}
+setInterval(tick, 500); tick();
+</script></body></html>"""
 
 
 def _legend(expected) -> str:
