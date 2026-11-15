@@ -106,15 +106,26 @@ def main() -> int:
     LIVE = Live(replay)
     LIVE.start()
     try:
+        if not args.no_wait:
+            print("\n" + "=" * 60, flush=True)
+            print(" ① 브라우저에서 위 경로 화면 주소를 열고, 에뮬레이터(왼쪽)·브라우저(오른쪽)를 나란히 놓으세요.", flush=True)
+            print("    다 되면 Enter → 녹화 전 준비를 합니다(1~2분, 화면이 자동으로 움직입니다. 아직 녹화하지 마세요).", flush=True)
+            print("=" * 60, flush=True)
+            input()
         if not args.skip_prepare:
             _prepare(app, replay)
+        if not args.no_wait:
+            print("\n" + "=" * 60, flush=True)
+            print(" ② 준비 완료. 이제 녹화를 시작한 뒤(Zoom: 화면 전체 공유 + 소리 공유 → 기록) Enter를 누르세요.", flush=True)
+            print("=" * 60, flush=True)
         if args.manual:
             device.shell("settings put system show_touches 1", check=False)
             _manual(app, replay)
             print("\n시연 끝. 녹화를 멈추세요.", flush=True)
             return 0
         if not args.no_wait:
-            input("\n준비 완료. 녹화를 시작한 뒤 Enter를 누르세요. ")
+            input()
+            print("시연을 시작합니다. 끝날 때까지 손대지 마세요(약 8분).\n", flush=True)
         _demo(app, replay, args.map, not args.app_during_drive)
         print("\n시연 끝. 녹화를 멈추세요.", flush=True)
     finally:
