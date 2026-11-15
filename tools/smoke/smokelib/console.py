@@ -83,14 +83,18 @@ class Console:
             time.sleep(1)
 
     def _request(self, method: str, path: str, params: dict) -> dict:
-        """콘솔에 HTTP 요청을 보낸다. 연결이 끊겼으면(adb 서버 재시작) 포트를 다시 잇고 한 번 더 보낸다."""
+        """콘솔에 HTTP 요청을 보낸다. 연결이 끊겼으면(adb 서버 재시작) 포트를 다시 잇고 최대 3번 더 보낸다."""
         url = f"{self.base}{path}?{urllib.parse.urlencode(params)}"
-        try:
-            body = self._send(method, url)
-        except OSError:
-            time.sleep(2)
-            self.forward()
-            body = self._send(method, url)
+        body = ""
+        for attempt in range(4):
+            try:
+                body = self._send(method, url)
+                break
+            except OSError:
+                if attempt == 3:
+                    raise
+                time.sleep(3)
+                self.forward()
         try:
             return json.loads(body)
         except json.JSONDecodeError:
