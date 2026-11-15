@@ -95,7 +95,7 @@ def korean_rental(step):
     step.action("확인 → 12초 기다림 → 반납")
     app.screen.tap("parking_warning_acknowledge")
     time.sleep(12)
-    step.check(not app.notifications("parking_warning"), "주정차 경고 알림이 10초 뒤 사라진다")
+    step.check(not app.visible_notifications("parking_warning"), "주정차 경고 알림이 10초 뒤 사라진다")
     app.covered_taps.clear()
     app.return_car()
     step.check(app.current() == "WAITING", "반납 뒤 대기 화면")

@@ -1,5 +1,6 @@
 """앱을 시나리오가 원하는 상태로 가장 짧은 길로 데려가는 조작 모음과, 지금 어떤 화면인지 읽는 일."""
 import re
+import threading
 import time
 
 from .console import Console
@@ -41,6 +42,9 @@ class App:
         self.screen = Screen(device, strings)
         self.covered_taps: list[str] = []   # 알림이 가려 가운데를 누를 수 없었던 버튼(사용성 문제로 보고)
         self.shots_dir = None                # 정하면 화면마다 언어별로 처음 한 번 스크린샷을 남긴다
+        self._posted: dict[int, Notification] = {}   # 앱을 연 뒤 한 번이라도 뜬 알림(알림은 8·10초 뒤 지워지므로 뜰 때 모아 둔다)
+        self._lock = threading.Lock()
+        threading.Thread(target=self._record_notifications, daemon=True).start()
         self.language = "ko"
         self._shot: set[str] = set()
 
@@ -88,10 +92,30 @@ class App:
         """지금까지의 음성 로그."""
         return parse_speech(self.device.logcat("AnnyeongTts"))
 
+    def _record_notifications(self) -> None:
+        """1.5초마다 지금 떠 있는 알림을 읽어 모아 둔다. 알림이 정해진 시간 뒤 지워져도 무엇이 떴는지 판정할 수 있게 한다."""
+        while True:
+            try:
+                current = self.device.notifications()
+                with self._lock:
+                    for n in current:
+                        self._posted.setdefault(n.id, n)
+            except Exception:  # noqa: BLE001 - 기록 실패는 다음 차례에 다시 읽는다
+                pass
+            time.sleep(1.5)
+
     def notifications(self, channel: str | None = None) -> list[Notification]:
-        """앱 알림. 채널을 주면 그 채널만."""
-        found = self.device.notifications()
+        """앱을 연 뒤 한 번이라도 뜬 알림(지금 지워졌어도 포함), 띄운 순서. 채널을 주면 그 채널만."""
+        current = self.device.notifications()
+        with self._lock:
+            for n in current:
+                self._posted.setdefault(n.id, n)
+            found = sorted(self._posted.values(), key=lambda n: n.id)
         return [n for n in found if channel is None or n.channel == channel]
+
+    def visible_notifications(self, channel: str | None = None) -> list[Notification]:
+        """지금 화면·알림 목록에 남아 있는 알림."""
+        return [n for n in self.device.notifications() if channel is None or n.channel == channel]
 
     def question_number(self) -> int | None:
         """교육 문제 화면의 문제 번호(문제 N / M의 N). 문제 화면이 아니면 None."""
@@ -118,6 +142,8 @@ class App:
             self.console.stop_vehicle()
         self.console.gear("P")
         self.device.force_stop()
+        with self._lock:
+            self._posted.clear()   # 앱을 다시 열면 알림 번호가 처음부터 다시 매겨진다
         self.device.clear_data()
         self.device.grant_permissions()
         self.device.geo_fix(*point)
