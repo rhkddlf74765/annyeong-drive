@@ -24,23 +24,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.annyeongdrive.app.drive.DriveEvent
-import com.annyeongdrive.app.drive.state.Driving
-import com.annyeongdrive.app.drive.state.Idle
-import com.annyeongdrive.app.drive.state.Learning
-import com.annyeongdrive.app.drive.state.LearningStart
-import com.annyeongdrive.app.drive.state.ParkedNoParkingWarning
-import com.annyeongdrive.app.drive.state.ParkedResumeOffer
-import com.annyeongdrive.app.drive.state.ParkedRest
 import com.annyeongdrive.app.drive.state.ParkedVendorSettings
 import com.annyeongdrive.app.drive.state.Returning
-import com.annyeongdrive.app.drive.state.SetupLanguage
-import com.annyeongdrive.app.drive.state.SetupPrecheck
 import com.annyeongdrive.app.service.DriveRuntime
 import com.annyeongdrive.app.service.DriveService
 import com.annyeongdrive.app.ui.admin.ReturnScreen
 import com.annyeongdrive.app.ui.admin.VendorSettingsActions
 import com.annyeongdrive.app.ui.admin.VendorSettingsView
 import com.annyeongdrive.app.setup.PrecheckView
+import com.annyeongdrive.app.ui.AppScreen
 import com.annyeongdrive.app.ui.RentalLanguage
 import com.annyeongdrive.app.ui.home.DrivingHome
 import com.annyeongdrive.app.ui.home.ParkingWarningScreen
@@ -159,7 +151,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * 운전 상태에 맞는 화면을 고른다. 상태가 바뀌면 반납·업체 설정 흐름에 알려 첫 단계를 정하거나 닫게 한다.
+ * 운전 상태에 맞는 화면을 그린다. 어떤 화면인지는 [AppScreen.of]가 고른다. 상태가 바뀌면 반납·업체 설정 흐름에 알려 첫 단계를 정하거나 닫게 한다.
  *
  * @param runtime 앱 전체에서 하나인 조립 지점
  * @param messageId 대기 상태에서 보여 줄 문구 ID(위치 권한이 없으면 권한 안내)
@@ -189,15 +181,15 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
         if (driveState == ParkedVendorSettings) vendorFlow.open()
     }
 
-    when (driveState) {
-        Idle -> HomeMessage(messageId, modifier)
-        is Driving -> DrivingHome(modifier)
-        ParkedNoParkingWarning -> ParkingWarningScreen(onAcknowledge = parkingWarning::acknowledge, modifier = modifier)
-        SetupLanguage -> LanguageScreen(
+    when (AppScreen.of(driveState)) {
+        AppScreen.WAITING -> HomeMessage(messageId, modifier)
+        AppScreen.DRIVING -> DrivingHome(modifier)
+        AppScreen.PARKING_WARNING -> ParkingWarningScreen(onAcknowledge = parkingWarning::acknowledge, modifier = modifier)
+        AppScreen.LANGUAGE -> LanguageScreen(
             onSelect = { language -> scope.launch { setupFlow.selectLanguage(language) } },
             modifier = modifier,
         )
-        SetupPrecheck -> PrecheckScreen(
+        AppScreen.PRECHECK -> PrecheckScreen(
             view = PrecheckView.of(vehicle.seatBelts, vendorConfig),
             progress = precheck,
             actions = PrecheckActions(
@@ -206,12 +198,12 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
-        LearningStart -> LearningStartScreen(
+        AppScreen.LEARNING_START -> LearningStartScreen(
             onBegin = { scope.launch { learningEntry.begin() } },
             onLater = learningEntry::later,
             modifier = modifier,
         )
-        is Learning -> LearningScreen(
+        AppScreen.LEARNING -> LearningScreen(
             view = learningView,
             actions = LearningActions(
                 onPreviousCard = { scope.launch { learningFlow.previousCard() } },
@@ -225,7 +217,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
-        ParkedResumeOffer -> ResumeOfferScreen(
+        AppScreen.RESUME_OFFER -> ResumeOfferScreen(
             availability = vehicle.learningAvailability(),
             actions = ResumeOfferActions(
                 onResume = resumeOffer::resume,
@@ -234,7 +226,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
-        ParkedRest -> ParkedHome(
+        AppScreen.PARKED_HOME -> ParkedHome(
             availability = vehicle.learningAvailability(),
             actions = ParkedHomeActions(
                 onOpenLearning = { runtime.engine.send(DriveEvent.LearningOpenRequested) },
@@ -243,13 +235,13 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
-        Returning -> ReturnScreen(
+        AppScreen.RETURN -> ReturnScreen(
             state = returnScreen,
             onSubmit = { code -> scope.launch { runtime.returnFlow.submit(code) } },
             onCancel = runtime.returnFlow::cancel,
             modifier = modifier,
         )
-        ParkedVendorSettings -> VendorSettingsView(
+        AppScreen.VENDOR_SETTINGS -> VendorSettingsView(
             state = vendorScreen,
             actions = VendorSettingsActions(
                 onFirstCode = { code, confirm -> scope.launch { vendorFlow.setFirstCode(code, confirm) } },
@@ -266,7 +258,7 @@ private fun DriveScreen(runtime: DriveRuntime, @StringRes messageId: Int, modifi
             ),
             modifier = modifier,
         )
-        else -> HomeMessage(R.string.home_preparing, modifier)
+        AppScreen.PREPARING -> HomeMessage(R.string.home_preparing, modifier)
     }
 }
 
