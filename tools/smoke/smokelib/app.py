@@ -5,9 +5,10 @@ import time
 
 from .console import Console
 from .device import Device
-from .logs import Notification, SpeechEvent, parse_speech
+from .logs import Notification, SpeechEvent, parse_posted, parse_speech
 from .screen import Screen, Strings
 
+PACKAGE = "com.annyeongdrive.app"
 ADMIN_CODE = "Demo2026"
 PARKING_ZONE_POINT = (37.6251787, 127.0330457)   # PC5 주정차 단속 카메라(11/14·11/15 경고 확인 지점)
 OUTSIDE_ZONE_POINT = (37.6420, 127.0480)         # 주정차 카메라에서 1km 넘게 떨어진 곳
@@ -106,7 +107,7 @@ class App:
 
     def notifications(self, channel: str | None = None) -> list[Notification]:
         """앱을 연 뒤 한 번이라도 뜬 알림(지금 지워졌어도 포함), 띄운 순서. 채널을 주면 그 채널만."""
-        current = self.device.notifications()
+        current = self.device.notifications() + parse_posted(self.device.logcat(), PACKAGE)
         with self._lock:
             for n in current:
                 self._posted.setdefault(n.id, n)

@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from smokelib.logs import finished_count, parse_notifications, parse_speech, spoken  # noqa: E402
+from smokelib.logs import finished_count, parse_notifications, parse_posted, parse_speech, spoken  # noqa: E402
 
 LOGCAT = """--------- beginning of main
 1794679218.658 25258 25258 I AnnyeongTts: speak[en_US] (queue=0): Speed camera ahead. Limit 50 kilometers per hour.
@@ -64,6 +64,24 @@ class NotificationDumpTest(unittest.TestCase):
         self.assertEqual([2007, 2008], [n.id for n in found])
         self.assertEqual(["road_rule", "parking_warning"], [n.channel for n in found])
         self.assertEqual("School zone camera ahead. Limit 30 kilometers per hour.", found[0].text)
+
+
+POSTED = """1794679557.923  2651  2651 D [GAA]   : [Notification] Notification posted packageName:com.annyeongdrive.app, notification:StatusBarNotification(pkg=com.annyeongdrive.app user=UserHandle{10} id=2009 tag=null key=10|com.annyeongdrive.app|2009|null|1010181: Notification(channel=road_rule shortcut=null contentView=null))
+1794679557.923  1781  1781 D NotificationCenterListener: headUp NotificationPosted NotificationEntry(id=, uniqueId=10|com.annyeongdrive.app|2009|null|1010181, notificationId=2009, group=CRITICAL, category=UNKNOWN, categoryStr=navigation, postTime=1794679557710, icon=Icon(typ=RESOURCE pkg=com.annyeongdrive.app id=0x7f070092), title=Annyeong_drive, text=School zone. Speed limit 30 kilometers per hour. Children cross here, and fines are higher., extras=Bundle[{android.title=Annyeong_drive}])
+"""
+
+
+class PostedLogTest(unittest.TestCase):
+    """logcat의 알림 띄움 기록 해석."""
+
+    def test_곧_지워지는_알림도_띄운_기록에서_번호_채널_문장을_읽는다(self):
+        """쉼표가 든 문장도 끝까지 읽는다."""
+        # 상황 · 행동
+        found = parse_posted(POSTED, "com.annyeongdrive.app")
+        # 결과
+        self.assertEqual(1, len(found))
+        self.assertEqual((2009, "road_rule"), (found[0].id, found[0].channel))
+        self.assertEqual("School zone. Speed limit 30 kilometers per hour. Children cross here, and fines are higher.", found[0].text)
 
 
 if __name__ == "__main__":

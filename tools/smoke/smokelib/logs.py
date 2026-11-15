@@ -102,6 +102,23 @@ def parse_notifications(dump: str, package: str) -> list[Notification]:
     return sorted(found.values(), key=lambda n: n.id)
 
 
+_POSTED = re.compile(r"NotificationPosted NotificationEntry\(.*?uniqueId=\d+\|(?P<pkg>[^|]+)\|(?P<id>\d+)\|.*?categoryStr=\w+, postTime=(?P<ms>\d+),"
+                     r".*?text=(?P<text>.*?), extras=Bundle")
+_POSTED_CHANNEL = re.compile(r"Notification posted packageName:(?P<pkg>\S+), notification:StatusBarNotification\(pkg=\S+ user=\S+ id=(?P<id>\d+) .*?channel=(?P<channel>[^ )]+)")
+
+
+def parse_posted(logcat: str, package: str) -> list[Notification]:
+    """logcat에서 앱이 띄운 알림을 뽑는다(Pleos 알림 센터 기록). 알림이 곧 지워져도 남는다. 띄운 순서(알림 ID 순)."""
+    channels = {int(m["id"]): m["channel"] for m in _POSTED_CHANNEL.finditer(logcat) if m["pkg"].rstrip(",") == package}
+    found: dict[int, Notification] = {}
+    for m in _POSTED.finditer(logcat):
+        nid = int(m["id"])
+        if m["pkg"] != package or nid not in channels or nid in found:
+            continue
+        found[nid] = Notification(nid, channels[nid], m["text"], int(m["ms"]))
+    return sorted(found.values(), key=lambda n: n.id)
+
+
 def _start(record: re.Match, package: str) -> dict:
     """알림 기록 하나를 읽기 시작한다."""
     keep = record["pkg"] == package and "ranker_group" not in record.group(0)
