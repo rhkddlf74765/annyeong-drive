@@ -12,6 +12,7 @@ import argparse
 import sys
 import threading
 import functools
+import os
 import http.server
 import json
 import time
@@ -125,9 +126,8 @@ def main() -> int:
             return 0
         if not args.no_wait:
             input()
-            print("시연을 시작합니다. 끝날 때까지 손대지 마세요(약 8분).\n", flush=True)
+        _clear_terminal()
         _demo(app, replay, args.map, not args.app_during_drive)
-        print("\n시연 끝. 녹화를 멈추세요.", flush=True)
     finally:
         console.stop()
     return 0
@@ -148,7 +148,7 @@ def _arguments() -> argparse.Namespace:
 
 def _prepare(app: App, replay: Replay) -> None:
     """녹화 전 준비: 앱 데이터를 비우고 업체 관리자 코드를 정한 뒤 반납해, 경로 시작점의 대기 화면으로 둔다."""
-    print("준비 중(녹화 전): 업체 코드 설정 → 반납 → 경로 시작점 대기 화면", flush=True)
+    print("준비 중: 업체 관리자 코드 설정 → 대기 화면", flush=True)
     app.rented(point=replay.start_point)
     app.return_car()
     app.console.seat(False)
@@ -159,14 +159,14 @@ def _prepare(app: App, replay: Replay) -> None:
 def _demo(app: App, replay: Replay, map_activity: str | None, leave_app: bool) -> None:
     """녹화할 시연 흐름."""
     clock = Clock()
-    clock.scene("1. 대기 화면(영어·한국어 함께)")
+    clock.scene("1. 대기 화면 — 영어·한국어 함께 표시")
     time.sleep(PAUSE)
 
-    clock.scene("2. 운전석 착좌 [입력: 가상 콘솔] → 언어 선택")
+    clock.scene("2. 운전석 착좌(가상 콘솔) → 언어 선택")
     app.console.seat(True)
     app.wait_screen("LANGUAGE", 20)
     time.sleep(PAUSE_SHORT)
-    clock.scene("3. English 선택 → 출발 전 점검")
+    clock.scene("3. English 선택 → 출발 전 점검(안전띠 직접 확인 → 점검 마침)")
     app.screen.tap("language_english")
     app.wait_screen("PRECHECK", 20)
     time.sleep(PAUSE)
@@ -176,13 +176,13 @@ def _demo(app: App, replay: Replay, map_activity: str | None, leave_app: bool) -
     app.wait_screen("LEARNING_START", 20)
     time.sleep(PAUSE_SHORT)
 
-    clock.scene("4. 교육 시작 → 카드")
+    clock.scene("4. 교육 시작 → 규칙 카드")
     app.screen.tap("action_learning_begin")
     app.wait_screen("LEARNING", 15)
     time.sleep(PAUSE)
     app.screen.tap("learn_action_next")
     time.sleep(PAUSE_SHORT)
-    clock.scene("5. 핵심 퀴즈 → 답 고르기 → 정답 확인 → 해설")
+    clock.scene("5. 핵심 퀴즈 → 답 선택 → 정답 확인 → 해설")
     app.go_to_quiz()
     time.sleep(PAUSE_SHORT)
     app.choose_first_option()
@@ -192,27 +192,27 @@ def _demo(app: App, replay: Replay, map_activity: str | None, leave_app: bool) -
     app.screen.tap("learn_action_next_question")
     time.sleep(PAUSE_SHORT)
 
-    clock.scene("6. 출발 [입력: 가상 콘솔 D·50km/h] → 교육 화면 닫힘")
+    clock.scene("6. 출발: 기어 D·50km/h(가상 콘솔) → 교육 화면 자동 닫힘")
     app.device.logcat_clear()
     app.console.drive(replay.speed_mps * 3.6)
     app.wait_screen("DRIVING", 20)
     time.sleep(PAUSE)
     if map_activity:
-        clock.scene("   지도 화면 띄움")
+        clock.scene("   지도 화면")
         app.device.shell(f"am start --user {app.device.user} -n {map_activity}", check=False)
         time.sleep(PAUSE_SHORT)
     elif leave_app:
-        clock.scene("   홈 화면(차속·기어 표시) — 앱은 뒤에서 안내")
+        clock.scene("   주행 중: 차속·기어 표시, 앱 화면은 시스템이 가리고 음성으로 안내")
         app.device.shell("input keyevent KEYCODE_HOME", check=False)
         time.sleep(PAUSE_SHORT)
 
-    clock.scene(f"7. 시연 경로 주행 [입력: GPX 재생, 약 {replay.duration_s / 60:.0f}분] — 안내가 나오면 아래에 찍힌다")
+    clock.scene("7. 시연 경로 주행(GPX 재생, 3.8km)")
     watcher = _SpeechWatcher(app, clock)
     watcher.start()
     replay.start()
     replay.wait()
 
-    clock.scene("8. 경로 끝 정차 [입력: 가상 콘솔 0km/h → P] → 주정차 확인 안내")
+    clock.scene("8. 경로 끝 정차: 0km/h → P(가상 콘솔) → 주정차 확인 안내 → 확인했어요")
     app.stop_and_park()
     if map_activity or leave_app:
         app.device.start_app()
@@ -222,7 +222,7 @@ def _demo(app: App, replay: Replay, map_activity: str | None, leave_app: bool) -
     app.screen.tap("parking_warning_acknowledge")
     time.sleep(PAUSE_SHORT)
 
-    clock.scene("9. 이어서 확인할까요 → 이어 보기(멈춘 문제로)")
+    clock.scene("9. 이어서 확인할까요 → 이어 보기(멈춘 문제로 복귀)")
     if app.wait_screen("RESUME_OFFER", 10):
         time.sleep(PAUSE_SHORT)
         app.screen.tap("action_resume")
@@ -230,12 +230,20 @@ def _demo(app: App, replay: Replay, map_activity: str | None, leave_app: bool) -
         app.screen.tap("learn_action_close")
         time.sleep(PAUSE_SHORT)
 
-    clock.scene("10. 반납(관리자 코드) → 운전자 기록 삭제 → 대기 화면")
+    clock.scene("10. 반납: 관리자 코드 입력 → 운전자 기록 삭제")
     app.return_car()
     time.sleep(PAUSE)
-    clock.scene("11. 운전석 비움 [입력: 가상 콘솔] → 다음 손님 대기")
+    clock.scene("11. 운전석 비움(가상 콘솔) → 다음 손님 대기")
     app.console.seat(False)
     time.sleep(PAUSE)
+    clock.scene("시연 종료")
+
+
+def _clear_terminal() -> None:
+    """준비 안내를 지우고 시연 제목만 남긴다(터미널도 화면 공유에 들어간다)."""
+    os.system("cls" if os.name == "nt" else "clear")
+    print("Annyeong Drive 시연", flush=True)
+    print("입력: 착좌·기어·차속 = Pleos 가상 콘솔 · 위치 = GPX 재생 · 음성 = Pleos TTS\n", flush=True)
 
 
 def _manual(app: App, replay: Replay) -> None:
