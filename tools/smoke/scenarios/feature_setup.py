@@ -14,6 +14,9 @@ def language_and_precheck(step):
     app.reset()
     app.console.seat(True)
     step.check(app.wait_screen("LANGUAGE", 20), "앉으면 언어 선택")
+    labels = app.screen.labels()
+    both = [app.strings.text("setup_language_title", lang) for lang in ("values-en", "values")]
+    step.check(all(text in labels for text in both), f"언어를 고르기 전 제목은 영어·한국어를 함께 보여 준다: {labels[:4]}")
     step.action("English")
     app.screen.tap("language_english")
     step.check(app.wait_screen("PRECHECK", 20), "점검 화면")

@@ -13,6 +13,9 @@ def seat_after_return(step):
     step.situation("대여 중 → 관리자 코드로 반납 → 대기 화면")
     app.rented()
     app.return_car()
+    labels = app.screen.labels()
+    both = [app.strings.text("home_idle", lang) for lang in ("values-en", "values")]
+    step.check(all(text in labels for text in both), f"대기 화면은 영어·한국어를 함께 보여 준다: {labels[:4]}")
     step.action("운전석 비움 → 앉음")
     app.console.seat(False)
     step.check(app.current() == "WAITING", "비우기만 하면 대기 화면 그대로")
