@@ -155,9 +155,12 @@ class Replay:
             self._thread.join()
 
     def km_at(self, epoch: float) -> float | None:
-        """그 시각(초)에 마지막으로 보낸 위치(km). 재생 전이면 None."""
+        """그 시각(초)에 차가 있던 경로 위치(km). 첫 점을 보내기 전이면 차는 경로 시작점(0km)에 있다(출발 전에 시작점으로 옮겨 둔다).
+        아직 아무 점도 보내지 않았으면 None."""
+        if not self.sent:
+            return None
         times = [t for t, _ in self.sent]
         index = bisect_right(times, epoch) - 1
         if index < 0:
-            return None
+            return 0.0
         return self.sent[index][1]
